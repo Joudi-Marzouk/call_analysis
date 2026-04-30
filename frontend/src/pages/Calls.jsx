@@ -305,6 +305,7 @@ export default function Calls() {
                   
                 ))}
                
+               
                 {filteredCalls.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6}>
@@ -326,7 +327,7 @@ export default function Calls() {
   <Box sx={{ width: { xs: 320, sm: 420 }, p: 3 }}>
     {selectedCall && (
       <>
-        {/* Header */}
+      
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="h5">
