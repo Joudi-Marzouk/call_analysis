@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IconEye, IconEdit, IconTrash, IconUsers,IconX } from '@tabler/icons-react';
-import { Menu, ListItemIcon, ListItemText } from '@mui/material';
+import { IconEye, IconEdit, IconTrash, IconUsers,IconX, IconDots,IconRefresh, IconUpload } from '@tabler/icons-react';
+import { Menu, ListItemIcon, ListItemText, Checkbox } from '@mui/material';
+import { useRef } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
+} from '@mui/material';
 import {
   Box,
   Button,
@@ -116,8 +124,62 @@ const priorityColor = {
   medium: 'warning',
   low: 'success'
 };
+const employees = [
+  'Ahmad Ali',
+  'Sara Mohamed',
+  'Omar Khaled',
+  'Lina Hassan',
+  'Yousef Nasser'
+];
 
 export default function Calls() {
+
+
+const [usersMenuAnchor, setUsersMenuAnchor] = useState(null);
+const [userSearch, setUserSearch] = useState('');
+const [selectedUsers, setSelectedUsers] = useState([]);
+
+
+const openUsersMenu = (event) => {
+  setUsersMenuAnchor(event.currentTarget);
+};
+
+const closeUsersMenu = () => {
+  setUsersMenuAnchor(null);
+  setUserSearch('');
+};
+const filteredEmployees = useMemo(() => {
+  return employees.filter((name) =>
+    name.toLowerCase().includes(userSearch.toLowerCase())
+  );
+}, [userSearch]);
+
+const [activeCallId, setActiveCallId] = useState(null);
+const [anchorEl, setAnchorEl] = useState(null);
+const [menuCallId, setMenuCallId] = useState(null);
+
+const openMenu = (event, callId) => {
+  setAnchorEl(event.currentTarget);
+  setMenuCallId(callId);
+};
+const closeMenu = () => {
+  setAnchorEl(null);
+  setMenuCallId(null);
+};
+
+const [callsData, setCallsData] = useState(() => {
+  const saved = localStorage.getItem('calls');
+  return saved ? JSON.parse(saved) : calls;
+});
+const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+const [callToDelete, setCallToDelete] = useState(null);
+const handleDelete = (id) => {
+  const updated = callsData.filter((c) => c.id !== id);
+  setCallsData(updated);
+  localStorage.setItem('calls', JSON.stringify(updated));
+};
+const fileInputRef = useRef(null);
+
   const navigate = useNavigate();
   const { user } = useAuth();
   const role = (user?.role || '').toLowerCase();
@@ -141,7 +203,7 @@ export default function Calls() {
   }, [search, statusFilter, sentimentFilter, reviewedFilter]);
 
   const filteredCalls = useMemo(() => {
-    return calls.filter((call) => {
+   return callsData.filter((call) => {
       const matchesSearch =
         call.id.toLowerCase().includes(search.toLowerCase()) ||
         call.status.toLowerCase().includes(search.toLowerCase()) ||
@@ -154,7 +216,7 @@ export default function Calls() {
 
       return matchesSearch && matchesStatus && matchesSentiment && matchesReviewed;
     });
-  }, [search, statusFilter, sentimentFilter, reviewedFilter]);
+  }, [search, statusFilter, sentimentFilter, reviewedFilter, callsData]);
 
   const openCallDrawer = (call) => {
     setSelectedCall(call);
@@ -171,7 +233,38 @@ export default function Calls() {
   };
 
   return (
+    
     <>
+    <input
+  type="file"
+  accept="audio/*"
+  ref={fileInputRef}
+  style={{ display: 'none' }}
+ onChange={(e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const audioUrl = URL.createObjectURL(file);
+
+  const newCall = {
+    id: `C-${Date.now()}`,
+    status: 'pending',
+    sentiment: 'neutral',
+    priority: 'medium',
+    reviewed: 'No',
+    issue: 'Uploaded audio call',
+    transcript: 'Auto-generated call from uploaded audio file',
+    audio: audioUrl
+  };
+
+  const updated = [newCall, ...callsData];
+
+  setCallsData(updated);
+  localStorage.setItem('calls', JSON.stringify(updated));
+
+  e.target.value = '';
+}}
+/>
       <Card>
         <CardContent>
           <Typography variant="h4" gutterBottom>
@@ -181,65 +274,128 @@ export default function Calls() {
             Search, view and manage all calls
           </Typography>
 
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Search calls..."
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      {loading ? (
-                        <CircularProgress size={16} />
-                      ) : search ? (
-                        <IconButton size="small" onClick={() => setSearch('')}>
-                          <IconX size={14} />
-                        </IconButton>
-                      ) : null}
-                    </InputAdornment>
-                  )
-                }}
-              />
-            </Grid>
+ <Grid container spacing={2} sx={{ mb: 3 }}>
 
-            <Grid item xs={12} sm={4} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Status</InputLabel>
-                <Select value={statusFilter} label="Status" onChange={(event) => setStatusFilter(event.target.value)}>
-                  <MenuItem value="all">All</MenuItem>
-                  <MenuItem value="pending">pending</MenuItem>
-                  <MenuItem value="completed">completed</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+  {/* Search */}
+  <Grid item xs={12} md={3}>
+    <TextField
+      fullWidth
+      size="small"
+      placeholder="Search calls..."
+      value={search}
+      onChange={(event) => setSearch(event.target.value)}
+      InputProps={{
+        endAdornment: (
+          <InputAdornment position="end">
+            {loading ? (
+              <CircularProgress size={16} />
+            ) : search ? (
+              <IconButton size="small" onClick={() => setSearch('')}>
+                <IconX size={14} />
+              </IconButton>
+            ) : null}
+          </InputAdornment>
+        )
+      }}
+    />
+  </Grid>
 
-            <Grid item xs={12} sm={4} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Sentiment</InputLabel>
-                <Select value={sentimentFilter} label="Sentiment" onChange={(event) => setSentimentFilter(event.target.value)}>
-                  <MenuItem value="all">All</MenuItem>
-                  <MenuItem value="positive">positive</MenuItem>
-                  <MenuItem value="negative">negative</MenuItem>
-                  <MenuItem value="neutral">neutral</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+  {/* Status */}
+  <Grid item xs={12} md={3} sx={{ minWidth: 80 }}>
+    <FormControl fullWidth size="small">
+      <InputLabel>Status</InputLabel>
+      <Select
+        value={statusFilter}
+        label="Status"
+        sx={{ borderRadius: 2 }}
+        onChange={(event) => setStatusFilter(event.target.value)}
+      >
+        <MenuItem value="all">All</MenuItem>
+        <MenuItem value="pending">Pending</MenuItem>
+        <MenuItem value="completed">Completed</MenuItem>
+      </Select>
+    </FormControl>
+  </Grid>
 
-            <Grid item xs={12} sm={4} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Reviewed</InputLabel>
-                <Select value={reviewedFilter} label="Reviewed" onChange={(event) => setReviewedFilter(event.target.value)}>
-                  <MenuItem value="all">All</MenuItem>
-                  <MenuItem value="Yes">Yes</MenuItem>
-                  <MenuItem value="No">No</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
+  {/* Sentiment */}
+  <Grid item xs={12}  md={3} sx={{ minWidth: 80 }}>
+    <FormControl fullWidth size="small">
+      <InputLabel>Sentiment</InputLabel>
+      <Select
+        value={sentimentFilter}
+        label="Sentiment"
+        sx={{ borderRadius: 2 }}
+        onChange={(event) => setSentimentFilter(event.target.value)}
+      >
+        <MenuItem value="all">All</MenuItem>
+        <MenuItem value="positive">Positive</MenuItem>
+        <MenuItem value="negative">Negative</MenuItem>
+        <MenuItem value="neutral">Neutral</MenuItem>
+      </Select>
+    </FormControl>
+  </Grid>
 
+  {/* Reviewed */}
+  <Grid item xs={12} md={3} sx={{ minWidth: 80 }}>
+    <FormControl fullWidth size="small">
+      <InputLabel>Reviewed</InputLabel>
+      <Select
+        value={reviewedFilter}
+        label="Reviewed"
+        sx={{ borderRadius: 2 }}
+        onChange={(event) => setReviewedFilter(event.target.value)}
+      >
+        <MenuItem value="all">All</MenuItem>
+        <MenuItem value="Yes">Yes</MenuItem>
+        <MenuItem value="No">No</MenuItem>
+      </Select>
+    </FormControl>
+  </Grid>
+
+  {/* Reset Button */}
+  <Grid item xs={12} md={2} sx={{ minWidth: 80 }}>
+    <Button
+      fullWidth
+      variant="outlined"
+      startIcon={<IconRefresh size={18} />}
+      onClick={() => {
+        setStatusFilter('all');
+        setSentimentFilter('all');
+        setReviewedFilter('all');
+      }}
+      sx={{
+        borderRadius: 2,
+        textTransform: 'none',
+        fontWeight: 500
+      }}
+    >
+      Reset
+    </Button>
+  </Grid>
+
+{/* Upload Button */}
+<Grid item xs={12} md={2} sx={{ ml: 'auto' , minWidth: 80 }}>
+  <Button
+
+    fullWidth
+    variant="contained"
+    startIcon={<IconUpload size={18} />}
+    sx={{
+      borderRadius: 2,
+      textTransform: 'none',
+      fontWeight: 500,
+      backgroundColor: 'primary.main',
+      '&:hover': {
+        backgroundColor: 'primary.dark'
+      }
+    }}
+      onClick={() => fileInputRef.current?.click()}
+  >
+    Upload
+  </Button>
+</Grid>
+
+</Grid>
           <TableContainer>
             <Table size="small">
               <TableHead>
@@ -249,7 +405,7 @@ export default function Calls() {
                   <TableCell>Sentiment</TableCell>
                   <TableCell>Priority</TableCell>
                   <TableCell>Reviewed</TableCell>
-                  <TableCell align="left" sx={{ width: 160 }}>Actions</TableCell>
+                  <TableCell align="center" sx={{ width: 160 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -266,41 +422,20 @@ export default function Calls() {
                     <TableCell>
                       <Chip label={call.reviewed} color={call.reviewed === 'Yes' ? 'success' : 'error'} size="small" variant="outlined" />
                     </TableCell>
-                    <TableCell align="center">
+                  <TableCell align="center">
   <Stack direction="row" spacing={1} justifyContent="center">
-  
-  {/* View */}
-  <IconButton size="small" onClick={() => openCallDrawer(call)}>
-    <IconEye size={18} />
-  </IconButton>
-<IconButton size="small" onClick={(e) => handleOpenMenu(e, call)}>
-  {/* Edit */}
-  <IconButton
-    size="small"
-    onClick={() => console.log('edit', call.id)} // لاحقاً تربطها بالـ edit logic
-  >
-    <IconEdit size={18} />
-  </IconButton>
 
+    {/* View (always visible) */}
+    <IconButton size="small" onClick={() => openCallDrawer(call)}>
+      <IconEye size={18} />
+    </IconButton>
 
-  {/* Users */}
-  <IconButton
-    size="small"
-    onClick={() => console.log('users', call.id)} 
-  >
-    <IconUsers size={18} />
-  </IconButton>
-
-  {/* Delete */}
-  <IconButton
-    size="small"
-    onClick={() => console.log('delete', call.id)} // لاحقاً تربطها بالحذف
-  >
-    <IconTrash size={18} />
-  </IconButton>
+    {/* 3 dots menu */}
+   <IconButton size="small" onClick={(e) => openMenu(e, call.id)}>
+  <IconDots size={18} />
 </IconButton>
-</Stack>
-                    </TableCell>
+  </Stack>
+</TableCell>
                   </TableRow>
                   
                 ))}
@@ -322,12 +457,157 @@ export default function Calls() {
           </TableContainer>
         </CardContent>
       </Card>
+<Menu
+  anchorEl={anchorEl}
+  open={Boolean(anchorEl)}
+  onClose={closeMenu}
+>
+  <MenuItem onClick={() => { console.log('edit', menuCallId); closeMenu(); }}>
+    <ListItemIcon>
+      <IconEdit size={16} />
+    </ListItemIcon>
+    <ListItemText>Edit</ListItemText>
+  </MenuItem>
 
+ <MenuItem onClick={() => {
+  setActiveCallId(menuCallId);
+  setUsersMenuAnchor(anchorEl);
+  closeMenu();
+}}>
+  <ListItemIcon>
+    <IconUsers size={16} />
+  </ListItemIcon>
+  <ListItemText>Users</ListItemText>
+</MenuItem>
+
+<MenuItem onClick={() => {
+   setCallToDelete(menuCallId); 
+   setOpenDeleteDialog(true);// نفس زر الـ 3 dots
+  closeMenu();
+}}>
+    <ListItemIcon>
+      <IconTrash size={16} />
+    </ListItemIcon>
+    <ListItemText>Delete</ListItemText>
+  </MenuItem>
+</Menu>
+
+<Menu
+  anchorEl={usersMenuAnchor}
+  open={Boolean(usersMenuAnchor)}
+  onClose={closeUsersMenu}
+  disableAutoFocusItem
+  disableEnforceFocus
+  PaperProps={{ sx: { width: 280, p: 1 } }}
+>
+  {/* Search */}
+  <Box sx={{ px: 1, py: 1 }}>
+    <TextField
+    onKeyDown={(e) => e.stopPropagation()}
+  size="small"
+  fullWidth
+  placeholder="Search employees..."
+  value={userSearch}
+  autoFocus
+  onChange={(e) => setUserSearch(e.target.value)}
+/>
+  </Box>
+
+  <Divider />
+
+  {/* List */}
+  {filteredEmployees.map((name) => (
+    <MenuItem
+      key={name}
+      onClick={() => {
+        setSelectedUsers((prev) =>
+          prev.includes(name)
+            ? prev.filter((n) => n !== name)
+            : [...prev, name]
+        );
+      }}
+    >
+      <Checkbox checked={selectedUsers.includes(name)} />
+      <ListItemText>{name}</ListItemText>
+    </MenuItem>
+  ))}
+
+  <Divider />
+
+  {/* OK Button */}
+  <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
+    <Button
+      variant="contained"
+      size="small"
+      onClick={() => {
+        console.log('Selected Users:', selectedUsers);
+        closeUsersMenu();
+      }}
+    >
+      send
+    </Button>
+  </Box>
+</Menu>
+
+{/* DELETE DIALOG */}
+      <Dialog 
+         open={openDeleteDialog}
+  onClose={() => setOpenDeleteDialog(false)}
+  maxWidth="sm"
+  fullWidth
+  PaperProps={{
+    sx: {
+      borderRadius: 3,
+      p: 1
+    }
+  }}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete {callToDelete}?
+          </DialogContentText>
+        </DialogContent>
+
+        <DialogActions>
+          <Button  onClick={() => setOpenDeleteDialog(false)}
+    variant="outlined"
+    sx={{
+      color: 'text.secondary',
+      borderColor: 'grey.400',
+      '&:hover': {
+        borderColor: 'grey.600',
+        backgroundColor: 'grey.100'
+      }
+    }}>
+      Cancel
+      </Button>
+ <Button
+            onClick={() => {
+              handleDelete(callToDelete);
+              setOpenDeleteDialog(false);
+            }}
+             variant="contained"
+    color="error"
+    sx={{
+      backgroundColor: 'error.dark',
+      '&:hover': {
+        backgroundColor: 'error.main'
+      }
+    }}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      
+    
     <Drawer anchor="right" open={openDrawer} onClose={closeCallDrawer}>
   <Box sx={{ width: { xs: 320, sm: 420 }, p: 3 }}>
     {selectedCall && (
       <>
-      
+        {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="h5">
@@ -402,9 +682,11 @@ export default function Calls() {
         </Typography>
 
         <Box sx={{ mb: 2 }}>
-          <audio controls style={{ width: '100%' }}>
-            <source src="" type="audio/mpeg" />
-          </audio>
+{selectedCall.audio && (
+  <audio controls style={{ width: '100%' }}>
+    <source src={selectedCall.audio} type="audio/mpeg" />
+  </audio>
+)}
         </Box>
 
         <Divider sx={{ mb: 2 }} />
