@@ -31,26 +31,6 @@ export default function UploadCall() {
     setUploaded(true);
   };
 
-  const latestCalls = [
-    { id: 1, status: "completed", sentiment: "positive", priority: "high", reviewed: "Yes" },
-    { id: 2, status: "pending", sentiment: "negative", priority: "medium", reviewed: "No" },
-    { id: 3, status: "completed", sentiment: "neutral", priority: "low", reviewed: "Yes" },
-    { id: 4, status: "pending", sentiment: "positive", priority: "medium", reviewed: "No" },
-    { id: 5, status: "completed", sentiment: "negative", priority: "high", reviewed: "Yes" }
-  ];
-
-  const sentimentColor = {
-    positive: "success",
-    negative: "error",
-    neutral: "info"
-  };
-
-  const priorityColor = {
-    high: "error",
-    medium: "warning",
-    low: "success"
-  };
-
   return (
     <Card>
       <CardContent>
@@ -70,85 +50,12 @@ export default function UploadCall() {
             <input type="file" accept="audio/*" hidden onChange={onFileChange} />
           </Button>
 
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary">
-              Selected file
-            </Typography>
+         
 
-            <Typography variant="body1">
-              {selectedFile ? selectedFile.name : "No file selected"}
-            </Typography>
-          </Box>
-
-          <Button
-            variant="contained"
-            onClick={onUpload}
-            disabled={!selectedFile}
-          >
-            Upload
-          </Button>
-
-          {uploaded && (
-            <Alert severity="success">
-              File uploaded successfully (mock).
-            </Alert>
-          )}
         </Stack>
 
-        {/* Table */}
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Latest Calls
-          </Typography>
-
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Sentiment</TableCell>
-                <TableCell>Priority</TableCell>
-                <TableCell>Reviewed</TableCell>
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {latestCalls.map((call) => (
-                <TableRow key={call.id}>
-                  <TableCell>{call.id}</TableCell>
-                  <TableCell>{call.status}</TableCell>
-
-                  <TableCell>
-                    <Chip
-                      label={call.sentiment}
-                      color={sentimentColor[call.sentiment]}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </TableCell>
-
-                  <TableCell>
-                    <Chip
-                      label={call.priority}
-                      color={priorityColor[call.priority]}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </TableCell>
-
-                  <TableCell>
-                    <Chip
-                      label={call.reviewed}
-                      color={call.reviewed === "Yes" ? "success" : "error"}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Box>
+    
+       
       </CardContent>
     </Card>
   );
