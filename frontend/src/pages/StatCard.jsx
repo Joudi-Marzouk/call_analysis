@@ -7,26 +7,27 @@ function StatCard({ data }) {
   return (
     <Paper
       sx={{
-        width: 400,
-        height:350,
+        width: "100%",
+        height: "100%",
         p: 3,
         borderRadius: 3,
-        background: "#fff",
-        boxShadow: "0 10px 30px rgba(0,0,0,0.05)"
+        boxShadow: "none", // نفس ستايل الكاردات عندك
+        border: "1px solid",
+        borderColor: "divider"
       }}
     >
-      {/* 🔥 Header — Total Calls + Number بنفس السطر */}
+      {/* Header */}
       <Box sx={{ display: "flex", alignItems: "baseline", gap: 1, mb: 3 }}>
-        <Typography variant="h5" fontWeight={600}>
+        <Typography variant="h6" fontWeight={600}>
           Total Calls:
         </Typography>
 
-        <Typography variant="h5" fontWeight={600}>
+        <Typography variant="h6" fontWeight={700}>
           {total}
         </Typography>
       </Box>
 
-      {/* 📊 List */}
+      {/* List */}
       {data.map((item, index) => {
         const percent = total ? (item.value / total) * 100 : 0;
 
@@ -37,7 +38,7 @@ function StatCard({ data }) {
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
-                mb: 2.5
+                mb: 0.5
               }}
             >
               <Typography variant="body2" color="text.secondary">
@@ -53,12 +54,11 @@ function StatCard({ data }) {
             <LinearProgress
               variant="determinate"
               value={percent}
+              color={item.color} // 🔥 هون صار نفس نظام MUI
               sx={{
-                height: 6,
+                height: 8,
                 borderRadius: 5,
-                backgroundColor: "#EEF2F6",
                 "& .MuiLinearProgress-bar": {
-                  backgroundColor: item.color,
                   borderRadius: 5
                 }
               }}
