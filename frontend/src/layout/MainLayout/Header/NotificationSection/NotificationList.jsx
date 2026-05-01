@@ -111,8 +111,8 @@ export default function NotificationList() {
           <ListItemAvatar>
             <Avatar
               sx={{
-                color: 'primary.dark',
-                bgcolor: 'primary.light'
+                color: 'secondary.dark',
+                bgcolor: 'secondary.light'
               }}
             >
               <IconMailbox stroke={1.5} size="20px" />

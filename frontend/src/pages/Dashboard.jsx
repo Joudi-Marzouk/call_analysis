@@ -40,11 +40,11 @@ export default function UploadCall() {
 const navigate = useNavigate();
 
   const latestCalls = [
-    { id: 1, status: "completed", sentiment: "positive", priority: "high", reviewed: "Yes" },
-    { id: 2, status: "pending", sentiment: "negative", priority: "medium", reviewed: "No" },
-    { id: 3, status: "completed", sentiment: "neutral", priority: "low", reviewed: "Yes" },
-    { id: 4, status: "pending", sentiment: "positive", priority: "medium", reviewed: "No" },
-    { id: 5, status: "completed", sentiment: "negative", priority: "high", reviewed: "Yes" }
+    { id: 'C-1003', status: "completed", sentiment: "positive", priority: "high", reviewed: "Yes" },
+    { id: 'C-1004', status: "pending", sentiment: "negative", priority: "medium", reviewed: "No" },
+    { id: 'C-1005', status: "completed", sentiment: "neutral", priority: "low", reviewed: "Yes" },
+    { id: 'C-1006', status: "pending", sentiment: "positive", priority: "medium", reviewed: "No" },
+    { id: 'C-1007', status: "completed", sentiment: "negative", priority: "high", reviewed: "Yes" }
   ];
 
   const sentimentColor = {
@@ -266,7 +266,9 @@ const topIssues = [
                       <Button
                         size="small"
                         variant="outlined"
-                        onClick={() => navigate("/calls")}
+                       onClick={() =>
+  navigate("/calls", { state: { selectedCallId: call.id } })
+}
                         sx={{
                         textTransform: "none",
                         borderRadius: 2,

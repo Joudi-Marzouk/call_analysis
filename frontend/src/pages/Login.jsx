@@ -73,7 +73,7 @@ export default function Login() {
             sx={{
               mb: 1,
               fontWeight: 700,
-              color: '#673ab7',
+              color: '#5e35b1',
               textAlign: 'center'
             }}
           >
@@ -117,7 +117,7 @@ export default function Login() {
                       onClick={() => setShowPassword((prev) => !prev)}
                       edge="end"
                     >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                      {showPassword ?  <Visibility /> :<VisibilityOff />}
                     </IconButton>
                   </InputAdornment>
                 )
@@ -133,9 +133,9 @@ export default function Login() {
                 py: 1.4,
                 fontWeight: 600,
                 borderRadius: 1.5,
-                background: '#673ab7',
+                background: '#5e35b1',
                 '&:hover': {
-                  background: '#5e35b1',
+                  background: '#4527a0',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                 }
               }}

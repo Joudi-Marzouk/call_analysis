@@ -5,8 +5,8 @@ const icons = { IconDashboard, IconPhone, IconRefresh, IconUser, IconSettings, I
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
 
 const dashboard = {
-  id: 'call-analysis',
-  title: 'Call Analysis',
+
+  
   type: 'group',
   children: [
     {
@@ -33,6 +33,7 @@ const dashboard = {
       icon: icons.IconRefresh,
       breadcrumbs: false
     },
+    /*
     {
       id: 'upload-call',
       title: 'Upload Call',
@@ -40,7 +41,7 @@ const dashboard = {
       url: '/upload-call',
       icon: icons.IconUpload,
       breadcrumbs: false
-    },
+    },*/
     {
       id: 'Profile',
       title: 'Profile',

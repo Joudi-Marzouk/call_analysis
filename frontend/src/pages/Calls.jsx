@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { IconEye, IconEdit, IconTrash, IconUsers,IconX, IconDots,IconRefresh, IconUpload } from '@tabler/icons-react';
 import { Menu, ListItemIcon, ListItemText, Checkbox } from '@mui/material';
 import { useRef } from 'react';
+import { useLocation } from "react-router-dom";
 import {
   Dialog,
   DialogTitle,
@@ -40,7 +41,7 @@ import useAuth from 'hooks/useAuth';
 
 const calls = [
   {
-    id: 'C-1001',
+    id: 'C-1000',
     status: 'pending',
     sentiment: 'positive',
     priority: 'high',
@@ -49,7 +50,7 @@ const calls = [
     issue: 'Delivery delay and invoice mismatch'
   },
   {
-    id: 'C-1002',
+    id: 'C-1009',
     status: 'completed',
     sentiment: 'negative',
     priority: 'high',
@@ -110,6 +111,33 @@ const calls = [
     reviewed: 'Yes',
     transcript: 'Follow-up confirmation call completed successfully with no pending concerns.',
     issue: 'Follow-up confirmation'
+  },
+   {
+    id: 'C-1000',
+    status: 'pending',
+    sentiment: 'positive',
+    priority: 'high',
+    reviewed: 'No',
+    transcript: 'Customer requested an urgent callback regarding delayed delivery and billing mismatch.',
+    issue: 'Delivery delay and invoice mismatch'
+  },
+  {
+    id: 'C-1009',
+    status: 'completed',
+    sentiment: 'negative',
+    priority: 'high',
+    reviewed: 'Yes',
+    transcript: 'Caller was frustrated due to repeated service interruption and asked for escalation.',
+    issue: 'Service interruption complaint'
+  },
+  {
+    id: 'C-1003',
+    status: 'pending',
+    sentiment: 'neutral',
+    priority: 'medium',
+    reviewed: 'No',
+    transcript: 'Customer asked about subscription details and follow-up pricing confirmation.',
+    issue: 'Subscription clarification'
   }
 ];
 
@@ -135,6 +163,14 @@ const employees = [
 export default function Calls() {
 
 
+const location = useLocation();
+const state = location.state;
+
+  // 🔥 1. callsData أول شي
+  const [callsData, setCallsData] = useState(() => {
+    const saved = localStorage.getItem('calls');
+    return saved ? JSON.parse(saved) : calls;
+  });
 const [usersMenuAnchor, setUsersMenuAnchor] = useState(null);
 const [userSearch, setUserSearch] = useState('');
 const [selectedUsers, setSelectedUsers] = useState([]);
@@ -167,10 +203,7 @@ const closeMenu = () => {
   setMenuCallId(null);
 };
 
-const [callsData, setCallsData] = useState(() => {
-  const saved = localStorage.getItem('calls');
-  return saved ? JSON.parse(saved) : calls;
-});
+
 const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 const [callToDelete, setCallToDelete] = useState(null);
 const handleDelete = (id) => {
@@ -226,6 +259,20 @@ const fileInputRef = useRef(null);
     setEditableKeywords('billing, escalation, callback');
     setOpenDrawer(true);
   };
+
+useEffect(() => {
+  const selectedId = state?.selectedCallId;
+
+  if (!selectedId || !callsData.length) return;
+
+  const foundCall = callsData.find(
+    (c) => String(c.id) === String(selectedId)
+  );
+
+  if (foundCall) {
+    openCallDrawer(foundCall);
+  }
+}, [state?.selectedCallId, callsData]);
 
   const closeCallDrawer = () => {
     setOpenDrawer(false);
@@ -684,7 +731,7 @@ const fileInputRef = useRef(null);
         <Box sx={{ mb: 2 }}>
 {selectedCall.audio && (
   <audio controls style={{ width: '100%' }}>
-    <source src={selectedCall.audio} type="audio/mpeg" />
+    <source src={selectedCall.audio} type="audio" />
   </audio>
 )}
         </Box>

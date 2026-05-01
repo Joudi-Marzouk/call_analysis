@@ -8,7 +8,7 @@ export default function Footer() {
     <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', pt: 3, mt: 'auto' }}>
       <Typography variant="caption">
         &copy; All rights reserved{' '}
-        <Typography component={Link} underline="hover" sx={{ color: 'secondary.main' }}>
+        <Typography component={Link} underline="hover" sx={{ color: 'primary.main' }}>
           Call Analysis
         </Typography>
       </Typography>
