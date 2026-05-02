@@ -21,7 +21,8 @@ import { useNavigate } from "react-router-dom";
 import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import LowPriorityIcon from "@mui/icons-material/LowPriority";
-
+import useCallsStore from 'hooks/useCallsStore';
+import { useEffect} from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -39,13 +40,21 @@ export default function UploadCall() {
   // ---------------- DATA ----------------
 const navigate = useNavigate();
 
-  const latestCalls = [
-    { id: 'C-1003', status: "completed", sentiment: "positive", priority: "high", reviewed: "Yes" },
-    { id: 'C-1004', status: "pending", sentiment: "negative", priority: "medium", reviewed: "No" },
-    { id: 'C-1005', status: "completed", sentiment: "neutral", priority: "low", reviewed: "Yes" },
-    { id: 'C-1006', status: "pending", sentiment: "positive", priority: "medium", reviewed: "No" },
-    { id: 'C-1007', status: "completed", sentiment: "negative", priority: "high", reviewed: "Yes" }
-  ];
+const { calls } = useCallsStore();
+
+useEffect(() => {
+  const sync = () => {
+    // فقط إعادة تحميل من store
+    const updated = JSON.parse(localStorage.getItem('calls')) || [];
+    setCalls(updated);
+  };
+
+  window.addEventListener('calls-updated', sync);
+
+  return () => window.removeEventListener('calls-updated', sync);
+}, []);
+
+ const latestCalls = calls.slice(0, 5);
 
   const sentimentColor = {
     positive: "success",
@@ -98,10 +107,12 @@ const topIssues = [
 ];
 
   const keywords = ["refund", "delay", "password", "cancel", "support", "error"];
+  
 
   // ---------------- UI ----------------
 
   return (
+    
     <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 3 }}>
 
       {/* ===================== PRIORITY CARDS (TYPE 1 — ANALYTICS CARDS) ===================== */}
@@ -267,8 +278,8 @@ const topIssues = [
                         size="small"
                         variant="outlined"
                        onClick={() =>
-  navigate("/calls", { state: { selectedCallId: call.id } })
-}
+                        navigate("/calls", { state: { selectedCallId: call.id } })
+                       }
                         sx={{
                         textTransform: "none",
                         borderRadius: 2,
@@ -432,5 +443,7 @@ const topIssues = [
       </Box>
 
     </Box>
+    
   );
+
 }

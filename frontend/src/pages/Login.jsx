@@ -73,7 +73,7 @@ export default function Login() {
             sx={{
               mb: 1,
               fontWeight: 700,
-              color: '#5e35b1',
+              color: '#1e88e5',
               textAlign: 'center'
             }}
           >
@@ -133,9 +133,9 @@ export default function Login() {
                 py: 1.4,
                 fontWeight: 600,
                 borderRadius: 1.5,
-                background: '#5e35b1',
+                background: '#1e88e5',
                 '&:hover': {
-                  background: '#4527a0',
+                  background: '#1565c0',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                 }
               }}

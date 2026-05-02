@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { IconEye, IconEdit, IconTrash, IconUsers,IconX, IconDots,IconRefresh, IconUpload } from '@tabler/icons-react';
+import { useEffect, useMemo, useState,useRef } from 'react';
+import { useNavigate,useLocation  } from 'react-router-dom';
+import { IconEye, IconEdit, IconTrash, IconUsers,IconX, IconDots,IconRefresh, IconUpload, IconDeviceFloppy } from '@tabler/icons-react';
 import { Menu, ListItemIcon, ListItemText, Checkbox } from '@mui/material';
-import { useRef } from 'react';
-import { useLocation } from "react-router-dom";
+import useCallsStore from 'hooks/useCallsStore';
 import {
   Dialog,
   DialogTitle,
@@ -122,7 +121,7 @@ const calls = [
     issue: 'Delivery delay and invoice mismatch'
   },
   {
-    id: 'C-1009',
+    id: 'C-1010',
     status: 'completed',
     sentiment: 'negative',
     priority: 'high',
@@ -131,7 +130,7 @@ const calls = [
     issue: 'Service interruption complaint'
   },
   {
-    id: 'C-1003',
+    id: 'C-1011',
     status: 'pending',
     sentiment: 'neutral',
     priority: 'medium',
@@ -161,16 +160,16 @@ const employees = [
 ];
 
 export default function Calls() {
+const [editableIssue, setEditableIssue] = useState('');
+const [isDirty, setIsDirty] = useState(false);
 
+const [isEditMode, setIsEditMode] = useState(false);
 
 const location = useLocation();
 const state = location.state;
 
   // 🔥 1. callsData أول شي
-  const [callsData, setCallsData] = useState(() => {
-    const saved = localStorage.getItem('calls');
-    return saved ? JSON.parse(saved) : calls;
-  });
+const { calls, setCalls } = useCallsStore();
 const [usersMenuAnchor, setUsersMenuAnchor] = useState(null);
 const [userSearch, setUserSearch] = useState('');
 const [selectedUsers, setSelectedUsers] = useState([]);
@@ -207,9 +206,10 @@ const closeMenu = () => {
 const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 const [callToDelete, setCallToDelete] = useState(null);
 const handleDelete = (id) => {
-  const updated = callsData.filter((c) => c.id !== id);
-  setCallsData(updated);
-  localStorage.setItem('calls', JSON.stringify(updated));
+  const updated = calls.filter((c) => c.id !== id);
+  setCalls(updated);
+ 
+  window.dispatchEvent(new Event('calls-updated'));
 };
 const fileInputRef = useRef(null);
 
@@ -236,7 +236,7 @@ const fileInputRef = useRef(null);
   }, [search, statusFilter, sentimentFilter, reviewedFilter]);
 
   const filteredCalls = useMemo(() => {
-   return callsData.filter((call) => {
+   return calls.filter((call) => {
       const matchesSearch =
         call.id.toLowerCase().includes(search.toLowerCase()) ||
         call.status.toLowerCase().includes(search.toLowerCase()) ||
@@ -249,35 +249,71 @@ const fileInputRef = useRef(null);
 
       return matchesSearch && matchesStatus && matchesSentiment && matchesReviewed;
     });
-  }, [search, statusFilter, sentimentFilter, reviewedFilter, callsData]);
+  }, [search, statusFilter, sentimentFilter, reviewedFilter, calls]);
 
-  const openCallDrawer = (call) => {
-    setSelectedCall(call);
-    setEditableTranscript(call.transcript);
-    setEditableSentiment(call.sentiment);
-    setEditablePriority(call.priority);
-    setEditableKeywords('billing, escalation, callback');
-    setOpenDrawer(true);
+useEffect(() => {
+  const sync = () => {
+    const updated = localStorage.getItem('calls');
+    if (updated) setCalls(JSON.parse(updated));
   };
 
+  window.addEventListener('calls-updated', sync);
+
+  return () => window.removeEventListener('calls-updated', sync);
+}, []);
+
+const openCallDrawer = (call, edit = false) => {
+  setSelectedCall(call);
+  setEditableTranscript(call.transcript);
+  setEditableSentiment(call.sentiment);
+  setEditablePriority(call.priority);
+  setEditableIssue(call.issue || '');
+  setEditableKeywords(call.keywords || 'billing, escalation');
+  setIsEditMode(edit);
+  setOpenDrawer(true);
+};
 useEffect(() => {
   const selectedId = state?.selectedCallId;
 
-  if (!selectedId || !callsData.length) return;
+  if (!selectedId || !calls.length) return;
 
-  const foundCall = callsData.find(
+  const foundCall = calls.find(
     (c) => String(c.id) === String(selectedId)
   );
 
   if (foundCall) {
     openCallDrawer(foundCall);
   }
-}, [state?.selectedCallId, callsData]);
+
+
+  window.history.replaceState({}, document.title);
+
+}, []); 
 
   const closeCallDrawer = () => {
     setOpenDrawer(false);
     setSelectedCall(null);
   };
+  const handleSave = () => {
+  const updated = calls.map((c) =>
+    c.id === selectedCall.id
+      ? {
+          ...c,
+          transcript: editableTranscript,
+          sentiment: editableSentiment,
+          priority: editablePriority,
+          issue: editableIssue,
+          keywords: editableKeywords
+        }
+      : c
+  );
+setIsDirty(false);
+  setCalls(updated);
+ 
+  window.dispatchEvent(new Event('calls-updated'));
+  setIsEditMode(false);
+  setOpenDrawer(false);
+};
 
   return (
     
@@ -304,11 +340,11 @@ useEffect(() => {
     audio: audioUrl
   };
 
-  const updated = [newCall, ...callsData];
+  const updated = [newCall, ...calls];
 
-  setCallsData(updated);
-  localStorage.setItem('calls', JSON.stringify(updated));
+  setCalls(updated);
 
+window.dispatchEvent(new Event('calls-updated'));
   e.target.value = '';
 }}
 />
@@ -473,7 +509,7 @@ useEffect(() => {
   <Stack direction="row" spacing={1} justifyContent="center">
 
     {/* View (always visible) */}
-    <IconButton size="small" onClick={() => openCallDrawer(call)}>
+    <IconButton size="small" onClick={() => openCallDrawer(call, false)}>
       <IconEye size={18} />
     </IconButton>
 
@@ -509,7 +545,14 @@ useEffect(() => {
   open={Boolean(anchorEl)}
   onClose={closeMenu}
 >
-  <MenuItem onClick={() => { console.log('edit', menuCallId); closeMenu(); }}>
+<MenuItem onClick={() => {
+  const call = calls.find((c) => c.id === menuCallId);
+  if (call) {
+    openCallDrawer(call);
+    setIsEditMode(true);
+  }
+  closeMenu();
+}}>
     <ListItemIcon>
       <IconEdit size={16} />
     </ListItemIcon>
@@ -661,12 +704,23 @@ useEffect(() => {
               Call Details - {selectedCall.id}
             </Typography>
 
-            <IconButton
-              size="small"
-              onClick={() => console.log('edit', selectedCall.id)}
-            >
-              <IconEdit size={18} />
-            </IconButton>
+<IconButton
+  size="small"
+  onClick={() => {
+    if (isEditMode) {
+      handleSave();
+      setIsDirty(false);
+    } else {
+      setIsEditMode(true);
+    }
+  }}
+  sx={{
+    color: isDirty ? 'primary.main' : 'text.primary',
+    transition: '0.2s'
+  }}
+>
+  {isEditMode ? <IconDeviceFloppy size={18} /> : <IconEdit size={18} />}
+</IconButton>
           </Box>
 
           <IconButton onClick={closeCallDrawer} size="small">
@@ -684,44 +738,106 @@ useEffect(() => {
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
           Main Issue
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {selectedCall.issue}
-        </Typography>
-
+{isEditMode ? (
+  <TextField
+    fullWidth
+    size="small"
+    value={editableIssue}
+onChange={(e) => {
+  setEditableIssue(e.target.value);
+  setIsDirty(true);
+}}
+    sx={{ mb: 2 }}
+  />
+) : (
+  <Typography variant="body2" sx={{ mb: 2 }}>
+    {editableIssue}
+  </Typography>
+)}
         <Typography variant="subtitle1" gutterBottom>
           Analysis
         </Typography>
 
         <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-          <Chip label={`${editablePriority} Priority`} color={priorityColor[editablePriority]} size="small" />
-          <Chip label={`${editableSentiment}`} color={sentimentColor[editableSentiment]} size="small" />
+          {isEditMode ? (
+  <Select
+    fullWidth
+    size="small"
+    value={editableSentiment}
+onChange={(e) => {
+  setEditableSentiment(e.target.value);
+  setIsDirty(true);
+}}
+    sx={{ mb: 2 }}
+  >
+    <MenuItem value="positive">Positive</MenuItem>
+    <MenuItem value="negative">Negative</MenuItem>
+    <MenuItem value="neutral">Neutral</MenuItem>
+  </Select>
+) : (
+  <Chip label={editableSentiment} color={sentimentColor[editableSentiment]} size="small" />
+)}
+{isEditMode ? (
+  <Select
+    fullWidth
+    size="small"
+    value={editablePriority}
+onChange={(e) => {
+  setEditablePriority(e.target.value);
+  setIsDirty(true);
+}}
+    sx={{ mb: 2 }}
+  >
+    <MenuItem value="high">High</MenuItem>
+    <MenuItem value="medium">Medium</MenuItem>
+    <MenuItem value="low">Low</MenuItem>
+  </Select>
+) : (
+  <Chip label={editablePriority} color={priorityColor[editablePriority]} size="small" />
+)}
         </Stack>
 
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
           Keywords
         </Typography>
 
-        <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
-          {editableKeywords.split(',').map((k, i) => (
-            <Chip key={i} label={k.trim()} size="small" />
-          ))}
-        </Stack>
+{isEditMode ? (
+  <TextField
+    fullWidth
+    size="small"
+    placeholder="comma separated..."
+    value={editableKeywords}
+onChange={(e) => {
+  setEditableKeywords(e.target.value);
+  setIsDirty(true);
+}}
+    sx={{ mb: 2 }}
+  />
+) : (
+  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
+    {editableKeywords.split(',').map((k, i) => (
+      <Chip key={i} label={k.trim()} size="small" />
+    ))}
+  </Stack>
+)}
 
         <Divider sx={{ mb: 2 }} />
 
         <Typography variant="subtitle1" gutterBottom>
           Transcript
         </Typography>
-
         <TextField
           fullWidth
           multiline
           minRows={4}
           value={editableTranscript}
-          onChange={(event) => setEditableTranscript(event.target.value)}
+          disabled={!isEditMode}
+onChange={(e) => {
+  setEditableTranscript(e.target.value);
+  setIsDirty(true);
+}}
           sx={{ mb: 2 }}
         />
-
         <Divider sx={{ mb: 2 }} />
 
         <Typography variant="subtitle1" gutterBottom>
@@ -742,10 +858,10 @@ useEffect(() => {
           Actions
         </Typography>
 
-        <Stack direction="row" spacing={1} flexWrap="wrap">
+        <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
           <Button
-            size="small"
-            variant="text"
+             variant="contained"
+    size="small"
             onClick={() =>
               navigate('/followups', {
                 state: { openCreateFollowup: true, callId: selectedCall.id }
@@ -754,6 +870,8 @@ useEffect(() => {
           >
             {isManager ? 'Assign Follow-up' : 'Needs Follow-up'}
           </Button>
+         
+
         </Stack>
       </>
     )}
