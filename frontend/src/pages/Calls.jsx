@@ -712,7 +712,7 @@ onChange={(e) => {
           Analysis
         </Typography>
 
-        <Stack direction="row" spacing={1} sx={{ mb: 2 }} flexWrap="wrap">
+        <Stack direction="row" spacing={1} sx={{ mb: 2 }} >
           {isEditMode ? (
   <Select
     fullWidth
