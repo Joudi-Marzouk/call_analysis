@@ -9,7 +9,6 @@ import {
   TableHead,
   TableRow,
   Chip,
-  LinearProgress,
   Divider,
   Avatar,
   Stack,
@@ -42,31 +41,31 @@ const navigate = useNavigate();
 
 const { calls } = useCallsStore();
 
-useEffect(() => {
-  const sync = () => {
-    // فقط إعادة تحميل من store
-    const updated = JSON.parse(localStorage.getItem('calls')) || [];
-    setCalls(updated);
-  };
-
-  window.addEventListener('calls-updated', sync);
-
-  return () => window.removeEventListener('calls-updated', sync);
-}, []);
 
  const latestCalls = calls.slice(0, 5);
 
-  const sentimentColor = {
-    positive: "success",
-    negative: "error",
-    neutral: "info"
-  };
-
-  const priorityColor = {
-    high: "error",
-    medium: "warning",
-    low: "success"
-  };
+const sentimentColor = {
+  positive: 'success',
+  negative: 'error',
+  neutral: 'default'
+};
+const priorityColor = {
+  high: 'error',
+  medium: 'warning',
+  low: 'success'
+};
+const stateColor = {
+  pending: 'warning',
+  in_progress: 'info',
+  completed: 'success',
+  rejected: 'error'
+};
+const statusLabel = {
+  pending: 'Pending',
+  in_progress: 'In Progress',
+  completed: 'Completed',
+  rejected: 'Rejected'
+};
 
 const overviewData = [
   { label: "Neutral Calls", value: 90, color: "secondary" },
@@ -232,10 +231,14 @@ const topIssues = [
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
+                <TableCell>Priority</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Sentiment</TableCell>
-                <TableCell>Priority</TableCell>
+                <TableCell>Duration</TableCell>
+                <TableCell>Created At</TableCell>
                 <TableCell>Reviewed</TableCell>
+                <TableCell>Uploaded By</TableCell>
+
                  <TableCell align="right">Actions</TableCell> 
               </TableRow>
             </TableHead>
@@ -243,35 +246,29 @@ const topIssues = [
             <TableBody>
               {latestCalls.map((call) => (
                 <TableRow key={call.id}>
-                  <TableCell>{call.id}</TableCell>
-                  <TableCell>{call.status}</TableCell>
+    <TableCell>{call.id}</TableCell>
+    
+    <TableCell>
+      <Chip label={call.priority} color={priorityColor[call.priority]} size="small" />
+    </TableCell>
+     <TableCell> 
+     <Chip label={statusLabel[call.status] || call.status}
+           color={stateColor[call.status]}
+           size="small" />
+           </TableCell>
+<TableCell>
+      <Chip label={call.sentiment} color={sentimentColor[call.sentiment]} size="small" />
+    </TableCell>
+ <TableCell>{call.duration}</TableCell>
 
-                  <TableCell>
-                    <Chip
-                      label={call.sentiment}
-                      color={sentimentColor[call.sentiment]}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </TableCell>
+    <TableCell sx={{ direction: 'ltr', textAlign: 'left' }}>
+  {call.createdAt}
+</TableCell>
+  <TableCell>
+      <Chip label={call.reviewed} color={call.reviewed === 'Yes' ? 'success' : 'error'} size="small" />
+    </TableCell>  
 
-                  <TableCell>
-                    <Chip
-                      label={call.priority}
-                      color={priorityColor[call.priority]}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </TableCell>
-
-                  <TableCell>
-                    <Chip
-                      label={call.reviewed}
-                      color={call.reviewed === "Yes" ? "success" : "error"}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </TableCell>
+    <TableCell>{call.uploadedBy}</TableCell>
                   <TableCell align="right">
                     <Stack direction="row" spacing={1} justifyContent="flex-end">
                       <Button
@@ -283,7 +280,7 @@ const topIssues = [
                         sx={{
                         textTransform: "none",
                         borderRadius: 2,
-                        px: 2
+                        px: 2,
                         }}
                       >
                         View

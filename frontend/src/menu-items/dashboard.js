@@ -33,15 +33,13 @@ const dashboard = {
       icon: icons.IconRefresh,
       breadcrumbs: false
     },
-    /*
-    {
-      id: 'upload-call',
-      title: 'Upload Call',
-      type: 'item',
-      url: '/upload-call',
-      icon: icons.IconUpload,
-      breadcrumbs: false
-    },*/
+   {
+  id: 'users',
+  title: 'Users',
+  type: 'item',
+  url: '/users',
+  icon: icons.UserOutlined
+},
     {
       id: 'Profile',
       title: 'Profile',

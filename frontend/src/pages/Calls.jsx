@@ -38,108 +38,18 @@ import {
 } from '@mui/material';
 import useAuth from 'hooks/useAuth';
 
-const calls = [
-  {
-    id: 'C-1000',
-    status: 'pending',
-    sentiment: 'positive',
-    priority: 'high',
-    reviewed: 'No',
-    transcript: 'Customer requested an urgent callback regarding delayed delivery and billing mismatch.',
-    issue: 'Delivery delay and invoice mismatch'
-  },
-  {
-    id: 'C-1009',
-    status: 'completed',
-    sentiment: 'negative',
-    priority: 'high',
-    reviewed: 'Yes',
-    transcript: 'Caller was frustrated due to repeated service interruption and asked for escalation.',
-    issue: 'Service interruption complaint'
-  },
-  {
-    id: 'C-1003',
-    status: 'pending',
-    sentiment: 'neutral',
-    priority: 'medium',
-    reviewed: 'No',
-    transcript: 'Customer asked about subscription details and follow-up pricing confirmation.',
-    issue: 'Subscription clarification'
-  },
-  {
-    id: 'C-1004',
-    status: 'completed',
-    sentiment: 'negative',
-    priority: 'low',
-    reviewed: 'Yes',
-    transcript: 'Caller provided feedback about app usability issues and requested minor UI updates.',
-    issue: 'Usability feedback'
-  },
-  {
-    id: 'C-1005',
-    status: 'pending',
-    sentiment: 'positive',
-    priority: 'medium',
-    reviewed: 'No',
-    transcript: 'Client appreciated quick response and asked for a feature walkthrough next week.',
-    issue: 'Feature onboarding request'
-  },
-  {
-    id: 'C-1006',
-    status: 'completed',
-    sentiment: 'neutral',
-    priority: 'low',
-    reviewed: 'Yes',
-    transcript: 'General inquiry call resolved after sharing setup instructions and account verification.',
-    issue: 'General support inquiry'
-  },
-  {
-    id: 'C-1007',
-    status: 'pending',
-    sentiment: 'negative',
-    priority: 'high',
-    reviewed: 'No',
-    transcript: 'Customer reported payment retry failures and requested immediate support assistance.',
-    issue: 'Payment processing failure'
-  },
-  {
-    id: 'C-1008',
-    status: 'completed',
-    sentiment: 'positive',
-    priority: 'low',
-    reviewed: 'Yes',
-    transcript: 'Follow-up confirmation call completed successfully with no pending concerns.',
-    issue: 'Follow-up confirmation'
-  },
-   {
-    id: 'C-1000',
-    status: 'pending',
-    sentiment: 'positive',
-    priority: 'high',
-    reviewed: 'No',
-    transcript: 'Customer requested an urgent callback regarding delayed delivery and billing mismatch.',
-    issue: 'Delivery delay and invoice mismatch'
-  },
-  {
-    id: 'C-1010',
-    status: 'completed',
-    sentiment: 'negative',
-    priority: 'high',
-    reviewed: 'Yes',
-    transcript: 'Caller was frustrated due to repeated service interruption and asked for escalation.',
-    issue: 'Service interruption complaint'
-  },
-  {
-    id: 'C-1011',
-    status: 'pending',
-    sentiment: 'neutral',
-    priority: 'medium',
-    reviewed: 'No',
-    transcript: 'Customer asked about subscription details and follow-up pricing confirmation.',
-    issue: 'Subscription clarification'
-  }
-];
-
+const stateColor = {
+  pending: 'warning',
+  in_progress: 'info',
+  completed: 'success',
+  rejected: 'error'
+};
+const statusLabel = {
+  pending: 'Pending',
+  in_progress: 'In Progress',
+  completed: 'Completed',
+  rejected: 'Rejected'
+};
 const sentimentColor = {
   positive: 'success',
   negative: 'error',
@@ -175,9 +85,6 @@ const [userSearch, setUserSearch] = useState('');
 const [selectedUsers, setSelectedUsers] = useState([]);
 
 
-const openUsersMenu = (event) => {
-  setUsersMenuAnchor(event.currentTarget);
-};
 
 const closeUsersMenu = () => {
   setUsersMenuAnchor(null);
@@ -189,7 +96,6 @@ const filteredEmployees = useMemo(() => {
   );
 }, [userSearch]);
 
-const [activeCallId, setActiveCallId] = useState(null);
 const [anchorEl, setAnchorEl] = useState(null);
 const [menuCallId, setMenuCallId] = useState(null);
 
@@ -251,16 +157,6 @@ const fileInputRef = useRef(null);
     });
   }, [search, statusFilter, sentimentFilter, reviewedFilter, calls]);
 
-useEffect(() => {
-  const sync = () => {
-    const updated = localStorage.getItem('calls');
-    if (updated) setCalls(JSON.parse(updated));
-  };
-
-  window.addEventListener('calls-updated', sync);
-
-  return () => window.removeEventListener('calls-updated', sync);
-}, []);
 
 const openCallDrawer = (call, edit = false) => {
   setSelectedCall(call);
@@ -294,7 +190,7 @@ useEffect(() => {
     setOpenDrawer(false);
     setSelectedCall(null);
   };
-  const handleSave = () => {
+const handleSave = () => {
   const updated = calls.map((c) =>
     c.id === selectedCall.id
       ? {
@@ -303,13 +199,19 @@ useEffect(() => {
           sentiment: editableSentiment,
           priority: editablePriority,
           issue: editableIssue,
-          keywords: editableKeywords
+          keywords: editableKeywords,
+          status: selectedCall.status,        
+          reviewed: selectedCall.reviewed     
         }
       : c
   );
-setIsDirty(false);
+
+  setIsDirty(false);
   setCalls(updated);
- 
+  window.dispatchEvent(new Event('calls-updated'));
+  setIsEditMode(false);
+  setOpenDrawer(false);
+
   window.dispatchEvent(new Event('calls-updated'));
   setIsEditMode(false);
   setOpenDrawer(false);
@@ -328,21 +230,22 @@ setIsDirty(false);
   if (!file) return;
 
   const audioUrl = URL.createObjectURL(file);
+const newCall = {
+  id: `C-${Date.now()}`,
+  status: 'pending',
+  sentiment: 'neutral',
+  priority: 'medium',
+  reviewed: 'No',
+  issue: 'Uploaded audio call',
+  transcript: 'Auto-generated call from uploaded audio file',
+  audio: audioUrl,
+  duration: '00:00',
+  createdAt: new Date().toISOString().split('T')[0],
+  uploadedBy: user?.name || 'System'
+};
 
-  const newCall = {
-    id: `C-${Date.now()}`,
-    status: 'pending',
-    sentiment: 'neutral',
-    priority: 'medium',
-    reviewed: 'No',
-    issue: 'Uploaded audio call',
-    transcript: 'Auto-generated call from uploaded audio file',
-    audio: audioUrl
-  };
-
-  const updated = [newCall, ...calls];
-
-  setCalls(updated);
+const updated = [newCall, ...calls];
+setCalls(updated);
 
 window.dispatchEvent(new Event('calls-updated'));
   e.target.value = '';
@@ -484,37 +387,61 @@ window.dispatchEvent(new Event('calls-updated'));
               <TableHead>
                 <TableRow>
                   <TableCell>ID</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Sentiment</TableCell>
                   <TableCell>Priority</TableCell>
-                  <TableCell>Reviewed</TableCell>
+                  <TableCell>Status</TableCell>
+                    <TableCell>Sentiment</TableCell>
+                    <TableCell>Duration</TableCell>
+                    <TableCell>Created At</TableCell>
+                     <TableCell>Reviewed</TableCell>
+                  <TableCell>Uploaded By</TableCell>
                   <TableCell align="center" sx={{ width: 160 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredCalls.map((call) => (
-                  <TableRow key={call.id}>
-                    <TableCell>{call.id}</TableCell>
-                    <TableCell sx={{ textTransform: 'capitalize' }}>{call.status}</TableCell>
-                    <TableCell>
-                      <Chip label={call.sentiment} color={sentimentColor[call.sentiment]} size="small" variant="outlined" />
-                    </TableCell>
-                    <TableCell>
-                      <Chip label={call.priority} color={priorityColor[call.priority]} size="small" variant="outlined" />
-                    </TableCell>
-                    <TableCell>
-                      <Chip label={call.reviewed} color={call.reviewed === 'Yes' ? 'success' : 'error'} size="small" variant="outlined" />
-                    </TableCell>
+{filteredCalls.map((call) => (
+  <TableRow key={call.id}>
+
+    <TableCell>{call.id}</TableCell>
+    
+    <TableCell>
+      <Chip label={call.priority} color={priorityColor[call.priority]} size="small" />
+    </TableCell>
+     <TableCell> 
+     <Chip label={statusLabel[call.status] || call.status}
+           color={stateColor[call.status]}
+           size="small" />
+           </TableCell>
+<TableCell>
+      <Chip label={call.sentiment} color={sentimentColor[call.sentiment]} size="small" />
+    </TableCell>
+ <TableCell>{call.duration}</TableCell>
+<TableCell>
+  <Box component="span" sx={{ 
+    direction: 'ltr', 
+    unicodeBidi: 'isolate',
+    display: 'inline-block'
+  }}>
+    {call.createdAt}
+  </Box>
+</TableCell>
+  <TableCell>
+      <Chip label={call.reviewed} color={call.reviewed === 'Yes' ? 'success' : 'error'} size="small" />
+    </TableCell>  
+
+    <TableCell>{call.uploadedBy}</TableCell>
+
                   <TableCell align="center">
   <Stack direction="row" spacing={1} justifyContent="center">
 
+    
+
     {/* View (always visible) */}
-    <IconButton size="small" onClick={() => openCallDrawer(call, false)}>
+    <IconButton size="small" onClick={() => openCallDrawer(call, false)}   sx={{ color: '#673ab7' }}>
       <IconEye size={18} />
     </IconButton>
 
     {/* 3 dots menu */}
-   <IconButton size="small" onClick={(e) => openMenu(e, call.id)}>
+   <IconButton size="small" onClick={(e) => openMenu(e, call.id)} sx={{ color: '#1e88e5' }}>
   <IconDots size={18} />
 </IconButton>
   </Stack>
@@ -559,14 +486,11 @@ window.dispatchEvent(new Event('calls-updated'));
     <ListItemText>Edit</ListItemText>
   </MenuItem>
 
- <MenuItem onClick={() => {
-  setActiveCallId(menuCallId);
+<MenuItem onClick={() => {
   setUsersMenuAnchor(anchorEl);
   closeMenu();
 }}>
-  <ListItemIcon>
-    <IconUsers size={16} />
-  </ListItemIcon>
+  <ListItemIcon><IconUsers size={16} /></ListItemIcon>
   <ListItemText>Users</ListItemText>
 </MenuItem>
 
@@ -699,10 +623,21 @@ window.dispatchEvent(new Event('calls-updated'));
       <>
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="h5">
-              Call Details - {selectedCall.id}
-            </Typography>
+<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+  {/* Status Dot */}
+  <Box
+    sx={{
+      width: 10,
+      height: 10,
+      borderRadius: '50%',
+      backgroundColor: (theme) =>
+        theme.palette[stateColor[selectedCall.status]]?.main || '#999'
+    }}
+  />
+
+  <Typography variant="h5">
+    Call Details - {selectedCall.id}
+  </Typography>
 
 <IconButton
   size="small"
@@ -719,7 +654,7 @@ window.dispatchEvent(new Event('calls-updated'));
     transition: '0.2s'
   }}
 >
-  {isEditMode ? <IconDeviceFloppy size={18} /> : <IconEdit size={18} />}
+  {isEditMode ? <IconDeviceFloppy size={22} /> : <IconEdit size={18} />}
 </IconButton>
           </Box>
 
@@ -728,10 +663,29 @@ window.dispatchEvent(new Event('calls-updated'));
           </IconButton>
         </Box>
 
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Review workflow for selected call
-        </Typography>
+<Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+  <Typography variant="body2" color="text.secondary">
+    {selectedCall.createdAt}
+  </Typography>
 
+  <Typography variant="body2" color="text.secondary">
+    Uploaded by{' '}
+    <Box
+      component="span"
+      onClick={() => console.log('Go to user:', selectedCall.uploadedBy)}
+      sx={{
+        fontWeight: 600,
+        color: 'text.primary',
+        cursor: 'pointer',
+        '&:hover': {
+          textDecoration: 'underline'
+        }
+      }}
+    >
+      {selectedCall.uploadedBy}
+    </Box>
+  </Typography>
+</Stack>
         <Divider sx={{ mb: 2 }} />
 
         {/* Main Issue */}
@@ -758,7 +712,7 @@ onChange={(e) => {
           Analysis
         </Typography>
 
-        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+        <Stack direction="row" spacing={1} sx={{ mb: 2 }} flexWrap="wrap">
           {isEditMode ? (
   <Select
     fullWidth
@@ -782,10 +736,10 @@ onChange={(e) => {
     fullWidth
     size="small"
     value={editablePriority}
-onChange={(e) => {
-  setEditablePriority(e.target.value);
-  setIsDirty(true);
-}}
+    onChange={(e) => {
+      setEditablePriority(e.target.value);
+      setIsDirty(true);
+    }}
     sx={{ mb: 2 }}
   >
     <MenuItem value="high">High</MenuItem>
@@ -793,8 +747,14 @@ onChange={(e) => {
     <MenuItem value="low">Low</MenuItem>
   </Select>
 ) : (
-  <Chip label={editablePriority} color={priorityColor[editablePriority]} size="small" />
+  <Chip
+    label={`${editablePriority} Priority`}
+    color={priorityColor[editablePriority]}
+    size="small"
+    sx={{ mb: 2 }}
+  />
 )}
+
         </Stack>
 
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
@@ -845,11 +805,12 @@ onChange={(e) => {
         </Typography>
 
         <Box sx={{ mb: 2 }}>
-{selectedCall.audio && (
-  <audio controls style={{ width: '100%' }}>
-    <source src={selectedCall.audio} type="audio" />
-  </audio>
-)}
+<audio
+  controls
+  style={{ width: '100%' }}
+  src={selectedCall?.audio || 'https://www.w3schools.com/html/horse.mp3'}
+/>
+
         </Box>
 
         <Divider sx={{ mb: 2 }} />
@@ -858,21 +819,48 @@ onChange={(e) => {
           Actions
         </Typography>
 
-        <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
-          <Button
-             variant="contained"
+       <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+  {/* Follow-up */}
+  <Button
+    variant="contained"
     size="small"
-            onClick={() =>
-              navigate('/followups', {
-                state: { openCreateFollowup: true, callId: selectedCall.id }
-              })
-            }
-          >
-            {isManager ? 'Assign Follow-up' : 'Needs Follow-up'}
-          </Button>
-         
+    onClick={() =>
+      navigate('/followups', {
+        state: { openCreateFollowup: true, callId: selectedCall.id }
+      })
+    }
+  >
+    {isManager ? 'Assign Follow-up' : 'Needs Follow-up'}
+  </Button>
 
-        </Stack>
+  {/* Reviewed Button */}
+  <Button
+    variant={selectedCall.reviewed === 'Yes' ? 'contained' : 'outlined' }
+    size="small"
+    
+    onClick={() => {
+      const updated = calls.map((c) =>
+        c.id === selectedCall.id
+          ? {
+              ...c,
+              reviewed: c.reviewed === 'Yes' ? 'No' : 'Yes'
+            }
+          : c
+      );
+
+      setCalls(updated);
+
+      setSelectedCall((prev) => ({
+        ...prev,
+        reviewed: prev.reviewed === 'Yes' ? 'No' : 'Yes'
+      }));
+
+      window.dispatchEvent(new Event('calls-updated'));
+    }}
+  >
+    {selectedCall.reviewed === 'Yes' ? 'Reviewed' : 'No Reviewed'}
+  </Button>
+</Stack>
       </>
     )}
   </Box>
