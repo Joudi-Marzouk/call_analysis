@@ -273,6 +273,7 @@ useEffect(() => {
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
           <Button variant="contained" size="small" onClick={() => {
             console.log('Selected Users:', selectedUsers);
+             setSelectedUsers([]);
             closeUsersMenu();
           }}>
             send

@@ -132,6 +132,9 @@ export default function UsersPage() {
       <CardContent>
 
         {/* Header */}
+         <Typography variant="h4" gutterBottom sx={{ padding: '16px 2px' }}>
+                    Users Management
+                  </Typography>
 <Stack
   direction="row"
   alignItems="center"
@@ -244,8 +247,9 @@ export default function UsersPage() {
                       label={user.role}
                       sx={{
                         backgroundColor: roleColors[user.role].bg,
-                        color: roleColors[user.role].color
+                        color: roleColors[user.role].color,
                       }}
+                       size="small"
                     />
                   </TableCell>
 
