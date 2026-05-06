@@ -3,10 +3,11 @@ import {
   Box, Button, Card, CardContent, Typography, Dialog,
   DialogTitle, DialogContent, DialogActions,
   TextField, MenuItem, Stack, Chip, Table, TableBody,
-  TableCell, TableHead, TableRow, Divider
+  TableCell, TableHead, TableRow, Divider,Checkbox ,IconButton ,
+  DialogContentText
 } from '@mui/material';
-import { IconPlus } from '@tabler/icons-react';
-
+import { IconPlus,IconTrash  } from '@tabler/icons-react';
+import { IconMoodSmile, IconMoodNeutral, IconMoodSad } from '@tabler/icons-react';
 export default function Reports() {
   const [reports, setReports] = useState([]);
   const [openForm, setOpenForm] = useState(false);
@@ -31,8 +32,8 @@ export default function Reports() {
       summary: '',
       positives: '',
       recommendations: '',
-      sentiment: { positive: 60, neutral: 25, negative: 15 },
-      topIssues: ['Delay', 'Bad audio', 'Agent tone', 'Missing info', 'Escalation']
+      sentiment: 'neutral',
+      topIssues: []
     };
 
     setReports([newReport, ...reports]);
@@ -57,6 +58,61 @@ useEffect(() => {
   localStorage.setItem('reports', JSON.stringify(reports));
 }, [reports]);
 
+const handleFieldChange = (field, value) => {
+  const updated = reports.map(r =>
+    r.id === selectedReport.id ? { ...r, [field]: value } : r
+  );
+
+  setReports(updated);
+
+  setSelectedReport(prev => ({
+    ...prev,
+    [field]: value
+  }));
+};
+
+const getSentimentConfig = (sentiment) => {
+  switch (sentiment) {
+    case 'positive':
+      return {
+        color: 'success',
+        icon: <IconMoodSmile size={16} />
+      };
+    case 'neutral':
+      return {
+        color: 'default',
+        icon: <IconMoodNeutral size={16} />
+      };
+    case 'negative':
+      return {
+        color: 'error',
+        icon: <IconMoodSad size={16} />
+      };
+    default:
+      return {
+        color: 'default',
+        icon: null
+      };
+  }
+};
+const sentimentConfig = selectedReport
+  ? getSentimentConfig(selectedReport.sentiment)
+  : { color: 'default', icon: null };
+
+
+  const [deleteDialog, setDeleteDialog] = useState(false);
+const [reportToDelete, setReportToDelete] = useState(null);
+
+const handleDeleteClick = (report) => {
+  setReportToDelete(report);
+  setDeleteDialog(true);
+};
+
+const confirmDelete = () => {
+  setReports(reports.filter(r => r.id !== reportToDelete.id));
+  setDeleteDialog(false);
+  setReportToDelete(null);
+};
   return (
    <Box p={3}>
 
@@ -88,9 +144,10 @@ useEffect(() => {
         <TableHead>
           <TableRow>
             <TableCell sx={{ width: "30%" }} >Period</TableCell>
-            <TableCell sx={{ width: "25%" }}>Type</TableCell>
-            <TableCell sx={{ width: "25%" }}>Status</TableCell>
-            <TableCell>Created By</TableCell>
+            <TableCell sx={{ width: "20%" }}>Type</TableCell>
+            <TableCell sx={{ width: "20%" }}>Status</TableCell>
+            <TableCell sx={{ width: "20%" }}>Created By</TableCell>
+            <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
 
@@ -122,6 +179,17 @@ useEffect(() => {
               </TableCell>
 
               <TableCell>{r.createdBy}</TableCell>
+              <TableCell>
+  <IconButton
+    color="error"
+    onClick={(e) => {
+      e.stopPropagation(); // 🔥 مهم حتى ما يفتح التقرير
+      handleDeleteClick(r);
+    }}
+  >
+    <IconTrash size={18} />
+  </IconButton>
+</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -177,6 +245,52 @@ useEffect(() => {
         </DialogActions>
       </Dialog>
 
+<Dialog
+  open={deleteDialog}
+  onClose={() => setDeleteDialog(false)}
+  maxWidth="sm"
+  fullWidth
+  PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+>
+  <DialogTitle>Confirm Delete</DialogTitle>
+
+  <DialogContent>
+    <DialogContentText>
+      Are you sure you want to delete this report?
+    </DialogContentText>
+  </DialogContent>
+
+  <DialogActions>
+    <Button
+      onClick={() => setDeleteDialog(false)}
+      variant="outlined"
+      sx={{
+        color: 'text.secondary',
+        borderColor: 'grey.400',
+        '&:hover': {
+          borderColor: 'grey.600',
+          backgroundColor: 'grey.100',
+        },
+      }}
+    >
+      Cancel
+    </Button>
+
+    <Button
+      color="error"
+      variant="contained"
+      onClick={confirmDelete}
+      sx={{
+        backgroundColor: 'error.dark',
+        '&:hover': {
+          backgroundColor: 'error.main',
+        },
+      }}
+    >
+      Delete
+    </Button>
+  </DialogActions>
+</Dialog>
       {/* VIEW REPORT */}
       <Dialog open={openView} onClose={() => setOpenView(false)} fullWidth maxWidth="md">
         <DialogTitle>Report Details</DialogTitle>
@@ -218,25 +332,70 @@ useEffect(() => {
               <Divider />
 
               {/* Sentiment */}
-              <Typography fontWeight={600}>
-                Sentiment Analysis
-              </Typography>
 
-              <Stack direction="row" spacing={2}>
-                <Chip label={`Positive ${selectedReport.sentiment.positive}%`} color="success" />
-                <Chip label={`Neutral ${selectedReport.sentiment.neutral}%`} color="warning" />
-                <Chip label={`Negative ${selectedReport.sentiment.negative}%`} color="error" />
-              </Stack>
+<TextField
+  select
+  label="Overall Sentiment"
+  value={selectedReport.sentiment}
+  onChange={e => handleFieldChange('sentiment', e.target.value)}
+  fullWidth
+  SelectProps={{
+    renderValue: (selected) => {
+      const config = getSentimentConfig(selected);
 
+      return (
+        <Chip
+          label={
+            selected
+              ? selected.charAt(0).toUpperCase() + selected.slice(1)
+              : ''
+          }
+          color={config.color}
+          icon={config.icon}
+          size="small"
+        />
+      );
+    }
+  }}
+>
+ <MenuItem value="positive">
+  <Chip label="Positive" color="success" size="small" />
+</MenuItem>
+  <MenuItem value="neutral">
+  <Chip label="neutral" color="default" size="small" />
+</MenuItem>
+ <MenuItem value="negative">
+  <Chip label="negative" color="error" size="small" />
+</MenuItem>
+</TextField>
               {/* Issues */}
-              <Box>
-                <Typography fontWeight={600}>Top Issues</Typography>
-                <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
-                  {selectedReport.topIssues.map((issue, i) => (
-                    <Chip key={i} label={issue} />
-                  ))}
-                </Stack>
-              </Box>
+<TextField
+  select
+  label="Top Issues"
+  value={selectedReport.topIssues || []}
+  onChange={(e) => {
+    const value = e.target.value;
+    handleFieldChange('topIssues',e.target.value);
+  }}
+  fullWidth
+  SelectProps={{
+    multiple: true,
+    renderValue: (selected) => (
+      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+        {selected.map((value) => (
+          <Chip key={value} label={value} size="small" />
+        ))}
+      </Box>
+    )
+  }}
+>
+  {['Delay', 'Bad audio', 'Agent tone', 'Missing info', 'Escalation'].map(issue => (
+    <MenuItem key={issue} value={issue}>
+      <Checkbox checked={selectedReport.topIssues?.indexOf(issue) > -1} />
+      {issue}
+    </MenuItem>
+  ))}
+</TextField>
 
             </Stack>
           </DialogContent>

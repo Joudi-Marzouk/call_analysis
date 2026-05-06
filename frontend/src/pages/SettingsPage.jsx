@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Typography } from '@mui/material';
+
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap');
   @import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css');
@@ -12,10 +12,7 @@ const styles = `
     padding: 28px;
     direction: rtl;
   }
-  .sp-page-title { font-size: 26px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; variant="h4";  sx={{ padding: '16px 2px' }}>
-            Calls Management
-          </Typography>
- }
+  .sp-page-title { font-size: 26px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
   .sp-page-sub { font-size: 14px; color: #8b93a7; margin-bottom: 24px; }
 
   /* Tabs */
@@ -207,7 +204,6 @@ const styles = `
 
 function Toggle({ label, desc, icon, defaultChecked = false }) {
   const [checked, setChecked] = useState(defaultChecked);
-
   return (
     <div className="sp-toggle-row" onClick={() => setChecked(v => !v)}>
       <div className="sp-toggle-info">
@@ -228,43 +224,39 @@ function Toggle({ label, desc, icon, defaultChecked = false }) {
 function ProfileTab() {
   return (
     <div className="sp-card">
-      <div className="sp-card-title"><i className="ti ti-user-circle"></i> Personal Information</div>
+      <div className="sp-card-title"><i className="ti ti-user-circle"></i> المعلومات الشخصية</div>
       <div className="sp-avatar-row">
-        <div className="sp-avatar">AH</div>
+        <div className="sp-avatar">أح</div>
         <div>
-          <div className="sp-avatar-name">Ahmed Al-Shammari</div>
-          <div className="sp-avatar-role">System Administrator</div>
+          <div className="sp-avatar-name">أحمد الشمري</div>
+          <div className="sp-avatar-role">مدير النظام</div>
         </div>
-        <button className="sp-btn-upload"><i className="ti ti-upload"></i> Upload Photo</button>
+        <button className="sp-btn-upload"><i className="ti ti-upload"></i> رفع صورة</button>
       </div>
-
       <div className="sp-field-grid">
         <div>
-          <label className="sp-field-label">Name</label>
+          <label className="sp-field-label">الاسم</label>
           <div className="sp-field-wrap">
-            <input className="sp-field-input" type="text" placeholder="Full name" />
+            <input className="sp-field-input" type="text" placeholder="الاسم الكامل" />
             <i className="ti ti-user sp-field-icon"></i>
           </div>
         </div>
-
         <div>
-          <label className="sp-field-label">Email</label>
+          <label className="sp-field-label">البريد الإلكتروني</label>
           <div className="sp-field-wrap">
             <input className="sp-field-input" type="email" defaultValue="ahmed@co.sa" disabled />
             <i className="ti ti-mail sp-field-icon"></i>
           </div>
         </div>
-
         <div className="sp-field-full">
-          <label className="sp-field-label">Job Role</label>
+          <label className="sp-field-label">الدور الوظيفي</label>
           <div className="sp-field-wrap">
-            <input className="sp-field-input" type="text" defaultValue="System Administrator" disabled />
+            <input className="sp-field-input" type="text" defaultValue="مدير النظام" disabled />
             <i className="ti ti-briefcase sp-field-icon"></i>
           </div>
         </div>
       </div>
-
-      <button className="sp-btn-primary"><i className="ti ti-device-floppy"></i> Save Changes</button>
+      <button className="sp-btn-primary"><i className="ti ti-device-floppy"></i> حفظ التغييرات</button>
     </div>
   );
 }
@@ -272,40 +264,35 @@ function ProfileTab() {
 function SecurityTab() {
   return (
     <div className="sp-card">
-      <div className="sp-card-title"><i className="ti ti-shield-lock"></i> Change Password</div>
-
+      <div className="sp-card-title"><i className="ti ti-shield-lock"></i> تغيير كلمة المرور</div>
       <div className="sp-field-grid">
         <div className="sp-field-full">
-          <label className="sp-field-label">Current Password</label>
+          <label className="sp-field-label">كلمة المرور الحالية</label>
           <div className="sp-field-wrap">
             <input className="sp-field-input" type="password" placeholder="••••••••" />
             <i className="ti ti-lock sp-field-icon"></i>
           </div>
         </div>
-
         <div>
-          <label className="sp-field-label">New Password</label>
+          <label className="sp-field-label">كلمة المرور الجديدة</label>
           <div className="sp-field-wrap">
             <input className="sp-field-input" type="password" placeholder="••••••••" />
             <i className="ti ti-lock sp-field-icon"></i>
           </div>
-
           <div className="sp-strength-wrap">
             <div className="sp-strength-bar"><div className="sp-strength-fill"></div></div>
-            <span className="sp-strength-label">Strong</span>
+            <span className="sp-strength-label">قوية</span>
           </div>
         </div>
-
         <div>
-          <label className="sp-field-label">Confirm Password</label>
+          <label className="sp-field-label">تأكيد كلمة المرور</label>
           <div className="sp-field-wrap">
             <input className="sp-field-input" type="password" placeholder="••••••••" />
             <i className="ti ti-lock sp-field-icon"></i>
           </div>
         </div>
       </div>
-
-      <button className="sp-btn-primary"><i className="ti ti-key"></i> Update Password</button>
+      <button className="sp-btn-primary"><i className="ti ti-key"></i> تغيير كلمة المرور</button>
     </div>
   );
 }
@@ -313,25 +300,22 @@ function SecurityTab() {
 function PreferencesTab() {
   return (
     <div className="sp-card">
-      <div className="sp-card-title"><i className="ti ti-adjustments"></i> Preferences</div>
-
+      <div className="sp-card-title"><i className="ti ti-adjustments"></i> التفضيلات</div>
       <div className="sp-toggle-list">
-        <Toggle label="Dark Mode" desc="Enable dark theme" icon="moon" />
-        <Toggle label="Notifications" desc="Receive real-time alerts" icon="bell" defaultChecked />
+        <Toggle label="الوضع الداكن" desc="تفعيل الثيم الداكن" icon="moon" />
+        <Toggle label="الإشعارات" desc="تلقي التنبيهات الفورية" icon="bell" defaultChecked />
       </div>
-
       <div style={{ marginBottom: 20 }}>
-        <label className="sp-field-label">Language</label>
+        <label className="sp-field-label">اللغة</label>
         <div className="sp-select-wrap">
           <select className="sp-select-field">
-            <option>Arabic</option>
+            <option>العربية</option>
             <option>English</option>
           </select>
           <i className="ti ti-chevron-down sp-select-arrow"></i>
         </div>
       </div>
-
-      <button className="sp-btn-primary"><i className="ti ti-device-floppy"></i> Save Preferences</button>
+      <button className="sp-btn-primary"><i className="ti ti-device-floppy"></i> حفظ التفضيلات</button>
     </div>
   );
 }
@@ -339,48 +323,38 @@ function PreferencesTab() {
 function SystemTab() {
   return (
     <div className="sp-card">
-      <div className="sp-card-title"><i className="ti ti-settings"></i> System Settings — Admin</div>
-
+      <div className="sp-card-title"><i className="ti ti-settings"></i> إعدادات النظام — المدير</div>
       <div className="sp-sys-grid">
-        <button className="sp-btn-ghost"><i className="ti ti-users"></i> User Management</button>
-        <button className="sp-btn-ghost"><i className="ti ti-mood-smile"></i> Edit Sentiments</button>
-        <button className="sp-btn-ghost"><i className="ti ti-list-check"></i> Edit Priorities</button>
+        <button className="sp-btn-ghost"><i className="ti ti-users"></i> إدارة المستخدمين</button>
+        <button className="sp-btn-ghost"><i className="ti ti-mood-smile"></i> تعديل المشاعر</button>
+        <button className="sp-btn-ghost"><i className="ti ti-list-check"></i> تعديل الأولويات</button>
       </div>
-
       <hr className="sp-divider" />
-
       <div className="sp-danger-zone">
-        <div className="sp-danger-label"><i className="ti ti-alert-triangle"></i> Danger Zone</div>
-        <div className="sp-danger-desc">This action cannot be undone. Proceed carefully.</div>
-        <button className="sp-btn-danger"><i className="ti ti-refresh-alert"></i> Reset System</button>
+        <div className="sp-danger-label"><i className="ti ti-alert-triangle"></i> منطقة الخطر</div>
+        <div className="sp-danger-desc">هذا الإجراء لا يمكن التراجع عنه. تأكد قبل المتابعة.</div>
+        <button className="sp-btn-danger"><i className="ti ti-refresh-alert"></i> إعادة ضبط النظام</button>
       </div>
     </div>
   );
 }
 
 const TABS = [
-  { label: 'Profile', icon: 'user', component: <ProfileTab /> },
-  { label: 'Security', icon: 'shield-lock', component: <SecurityTab /> },
-  { label: 'Preferences', icon: 'adjustments', component: <PreferencesTab /> },
-  { label: 'System', icon: 'settings', component: <SystemTab /> },
+  { label: 'الملف الشخصي', icon: 'user', component: <ProfileTab /> },
+  { label: 'الأمان', icon: 'shield-lock', component: <SecurityTab /> },
+  { label: 'التفضيلات', icon: 'adjustments', component: <PreferencesTab /> },
+  { label: 'النظام', icon: 'settings', component: <SystemTab /> },
 ];
+
 export default function SettingsPage() {
   const [tab, setTab] = useState(0);
-
 
   return (
     <>
       <style>{styles}</style>
-
-     <div className="sp-card">
-  <Typography
-    variant="h4"
-    gutterBottom
-    sx={{ padding: '16px 2px', fontWeight: 600 }}
-  >
-    Settings
-  </Typography>
-
+      <div className="sp-body">
+        <div className="sp-page-title">الإعدادات</div>
+        <div className="sp-page-sub">إدارة حسابك وتفضيلاتك</div>
 
         <div className="sp-tabs">
           {TABS.map((t, i) => (
