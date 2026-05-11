@@ -1,401 +1,437 @@
 import { useState } from 'react';
-import { Typography } from '@mui/material';
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap');
-  @import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css');
 
-  .sp-body {
-    font-family: 'IBM Plex Sans Arabic', sans-serif;
-    background: #f0f2f5;
-    color: #1a1a2e;
-    min-height: 100vh;
-    padding: 28px;
-    direction: rtl;
-  }
-  .sp-page-title { font-size: 26px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; variant="h4";  sx={{ padding: '16px 2px' }}>
-            Calls Management
-          </Typography>
- }
-  .sp-page-sub { font-size: 14px; color: #8b93a7; margin-bottom: 24px; }
+// MUI
+import {
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Stack,
+  Avatar,
+  TextField,
+  MenuItem,
+  Switch,
+  FormControlLabel,
+  Divider,
+  Box,
+  Chip
+} from '@mui/material';
 
-  /* Tabs */
-  .sp-tabs {
-    display: flex; gap: 2px;
-    background: #fff; border: 1px solid #e4e7ef;
-    border-radius: 12px; padding: 5px;
-    margin-bottom: 24px; width: fit-content;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  }
-  .sp-tab {
-    padding: 9px 22px; border-radius: 9px; border: none;
-    background: transparent;
-    font-family: 'IBM Plex Sans Arabic', sans-serif;
-    font-size: 14px; font-weight: 500; color: #8b93a7;
-    cursor: pointer; transition: all .2s;
-    display: flex; align-items: center; gap: 7px;
-  }
-  .sp-tab:hover { color: #3d5af1; }
-  .sp-tab.active {
-    background: #3d5af1; color: #fff;
-    box-shadow: 0 2px 10px rgba(61,90,241,0.3);
-  }
+// Icons
+import {
+  IconUser,
+  IconShieldLock,
+  IconAdjustments,
+  IconSettings,
+  IconUpload,
+  IconDeviceFloppy,
+  IconKey,
+  IconUsers,
+  IconMoodSmile,
+  IconListCheck,
+  IconAlertTriangle,
+  IconRefreshAlert
+} from '@tabler/icons-react';
 
-  /* Card */
-  .sp-card {
-    background: #fff; border: 1px solid #e4e7ef;
-    border-radius: 16px; padding: 28px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-    margin-bottom: 16px;
-  }
-  .sp-card-title {
-    font-size: 15px; font-weight: 600; color: #1a1a2e;
-    margin-bottom: 20px; padding-bottom: 16px;
-    border-bottom: 1px solid #f0f2f5;
-    display: flex; align-items: center; gap: 9px;
-  }
-  .sp-card-title i { font-size: 18px; color: #3d5af1; }
-
-  /* Avatar */
-  .sp-avatar-row {
-    display: flex; align-items: center; gap: 18px;
-    margin-bottom: 26px; padding: 18px;
-    background: #f8f9fc; border-radius: 12px;
-    border: 1px solid #e4e7ef;
-  }
-  .sp-avatar {
-    width: 64px; height: 64px; border-radius: 50%;
-    background: linear-gradient(135deg, #3d5af1, #6c8aff);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px; font-weight: 600; color: #fff;
-    flex-shrink: 0; box-shadow: 0 4px 14px rgba(61,90,241,0.3);
-  }
-  .sp-avatar-name { font-size: 16px; font-weight: 600; color: #1a1a2e; }
-  .sp-avatar-role { font-size: 13px; color: #8b93a7; margin-top: 2px; }
-  .sp-btn-upload {
-    padding: 8px 16px; border-radius: 8px;
-    border: 1.5px solid #3d5af1; background: transparent;
-    color: #3d5af1;
-    font-family: 'IBM Plex Sans Arabic', sans-serif;
-    font-size: 13px; font-weight: 500; cursor: pointer;
-    transition: all .2s; display: flex; align-items: center; gap: 6px;
-    margin-right: auto;
-  }
-  .sp-btn-upload:hover { background: #3d5af1; color: #fff; }
-
-  /* Fields */
-  .sp-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-  .sp-field-full { grid-column: 1 / -1; }
-  .sp-field-label {
-    font-size: 12px; font-weight: 600; color: #5a6282;
-    letter-spacing: .4px; margin-bottom: 7px; text-transform: uppercase;
-    display: block;
-  }
-  .sp-field-wrap { position: relative; }
-  .sp-field-input {
-    width: 100%; padding: 11px 40px 11px 14px;
-    border: 1.5px solid #e4e7ef; border-radius: 10px;
-    font-family: 'IBM Plex Sans Arabic', sans-serif;
-    font-size: 14px; color: #1a1a2e; background: #fff;
-    outline: none; transition: all .2s;
-  }
-  .sp-field-input:focus { border-color: #3d5af1; box-shadow: 0 0 0 3px rgba(61,90,241,0.1); }
-  .sp-field-input:disabled { background: #f8f9fc; color: #aab0c4; cursor: not-allowed; }
-  .sp-field-icon {
-    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-    color: #aab0c4; font-size: 17px; pointer-events: none;
-  }
-
-  /* Buttons */
-  .sp-btn-primary {
-    padding: 11px 24px; border-radius: 10px; border: none;
-    background: #3d5af1; color: #fff;
-    font-family: 'IBM Plex Sans Arabic', sans-serif;
-    font-size: 14px; font-weight: 600; cursor: pointer;
-    transition: all .2s; display: inline-flex; align-items: center; gap: 8px;
-    box-shadow: 0 3px 12px rgba(61,90,241,0.25);
-  }
-  .sp-btn-primary:hover {
-    background: #2f49e0; box-shadow: 0 5px 18px rgba(61,90,241,0.35);
-    transform: translateY(-1px);
-  }
-  .sp-btn-ghost {
-    padding: 11px 24px; border-radius: 10px;
-    border: 1.5px solid #e4e7ef; background: #fff; color: #5a6282;
-    font-family: 'IBM Plex Sans Arabic', sans-serif;
-    font-size: 14px; font-weight: 500; cursor: pointer;
-    transition: all .2s; display: inline-flex; align-items: center; gap: 8px;
-    width: 100%;
-  }
-  .sp-btn-ghost:hover { border-color: #3d5af1; color: #3d5af1; background: #f0f3ff; }
-  .sp-btn-danger {
-    padding: 11px 24px; border-radius: 10px;
-    border: 1.5px solid #ffd0cc; background: #fff5f4; color: #e53935;
-    font-family: 'IBM Plex Sans Arabic', sans-serif;
-    font-size: 14px; font-weight: 600; cursor: pointer;
-    transition: all .2s; display: inline-flex; align-items: center; gap: 8px;
-  }
-  .sp-btn-danger:hover { background: #ffebea; border-color: #e53935; }
-
-  /* Strength bar */
-  .sp-strength-wrap { margin-top: 8px; display: flex; align-items: center; gap: 10px; }
-  .sp-strength-bar { flex: 1; height: 4px; border-radius: 4px; background: #e4e7ef; overflow: hidden; }
-  .sp-strength-fill { height: 100%; width: 70%; background: linear-gradient(90deg, #43a047, #66bb6a); border-radius: 4px; }
-  .sp-strength-label { font-size: 11px; font-weight: 600; color: #43a047; }
-
-  /* Toggle */
-  .sp-toggle-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-  .sp-toggle-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 15px 18px; border: 1.5px solid #e4e7ef; border-radius: 12px;
-    cursor: pointer; transition: all .2s;
-  }
-  .sp-toggle-row:hover { border-color: #3d5af1; background: #f8f9ff; }
-  .sp-toggle-info { display: flex; align-items: center; gap: 14px; }
-  .sp-toggle-icon {
-    width: 38px; height: 38px; border-radius: 10px;
-    background: #f0f3ff; display: flex; align-items: center; justify-content: center;
-    font-size: 18px; color: #3d5af1;
-  }
-  .sp-toggle-title { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 2px; }
-  .sp-toggle-desc { font-size: 12px; color: #8b93a7; }
-
-  /* Switch */
-  .sp-switch { position: relative; width: 42px; height: 23px; flex-shrink: 0; }
-  .sp-switch input { opacity: 0; width: 0; height: 0; }
-  .sp-slider {
-    position: absolute; inset: 0; border-radius: 23px;
-    background: #dde0e8; transition: .25s; cursor: pointer;
-  }
-  .sp-slider:before {
-    content: ''; position: absolute;
-    width: 17px; height: 17px; left: 3px; bottom: 3px;
-    background: #fff; border-radius: 50%; transition: .25s;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-  }
-  .sp-switch input:checked + .sp-slider { background: #3d5af1; }
-  .sp-switch input:checked + .sp-slider:before { transform: translateX(19px); }
-
-  /* Select */
-  .sp-select-wrap { position: relative; }
-  .sp-select-field {
-    width: 100%; padding: 11px 40px 11px 14px;
-    border: 1.5px solid #e4e7ef; border-radius: 10px;
-    font-family: 'IBM Plex Sans Arabic', sans-serif;
-    font-size: 14px; color: #1a1a2e; background: #fff;
-    outline: none; transition: all .2s; appearance: none; cursor: pointer;
-  }
-  .sp-select-field:focus { border-color: #3d5af1; box-shadow: 0 0 0 3px rgba(61,90,241,0.1); }
-  .sp-select-arrow {
-    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-    color: #aab0c4; font-size: 17px; pointer-events: none;
-  }
-
-  /* System grid */
-  .sp-sys-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-  .sp-divider { border: none; border-top: 1px solid #f0f2f5; margin: 20px 0; }
-  .sp-danger-zone {
-    border: 1.5px solid #ffd0cc; border-radius: 12px;
-    padding: 20px; background: #fff5f4;
-  }
-  .sp-danger-label {
-    font-size: 12px; font-weight: 600; color: #e53935;
-    letter-spacing: .4px; text-transform: uppercase;
-    margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
-  }
-  .sp-danger-desc { font-size: 13px; color: #b0756e; margin-bottom: 16px; }
-`;
-
-function Toggle({ label, desc, icon, defaultChecked = false }) {
-  const [checked, setChecked] = useState(defaultChecked);
-
-  return (
-    <div className="sp-toggle-row" onClick={() => setChecked(v => !v)}>
-      <div className="sp-toggle-info">
-        <div className="sp-toggle-icon"><i className={`ti ti-${icon}`}></i></div>
-        <div>
-          <div className="sp-toggle-title">{label}</div>
-          <div className="sp-toggle-desc">{desc}</div>
-        </div>
-      </div>
-      <label className="sp-switch" onClick={e => e.stopPropagation()}>
-        <input type="checkbox" checked={checked} onChange={() => setChecked(v => !v)} />
-        <span className="sp-slider"></span>
-      </label>
-    </div>
-  );
-}
-
-function ProfileTab() {
-  return (
-    <div className="sp-card">
-      <div className="sp-card-title"><i className="ti ti-user-circle"></i> Personal Information</div>
-      <div className="sp-avatar-row">
-        <div className="sp-avatar">AH</div>
-        <div>
-          <div className="sp-avatar-name">Ahmed Al-Shammari</div>
-          <div className="sp-avatar-role">System Administrator</div>
-        </div>
-        <button className="sp-btn-upload"><i className="ti ti-upload"></i> Upload Photo</button>
-      </div>
-
-      <div className="sp-field-grid">
-        <div>
-          <label className="sp-field-label">Name</label>
-          <div className="sp-field-wrap">
-            <input className="sp-field-input" type="text" placeholder="Full name" />
-            <i className="ti ti-user sp-field-icon"></i>
-          </div>
-        </div>
-
-        <div>
-          <label className="sp-field-label">Email</label>
-          <div className="sp-field-wrap">
-            <input className="sp-field-input" type="email" defaultValue="ahmed@co.sa" disabled />
-            <i className="ti ti-mail sp-field-icon"></i>
-          </div>
-        </div>
-
-        <div className="sp-field-full">
-          <label className="sp-field-label">Job Role</label>
-          <div className="sp-field-wrap">
-            <input className="sp-field-input" type="text" defaultValue="System Administrator" disabled />
-            <i className="ti ti-briefcase sp-field-icon"></i>
-          </div>
-        </div>
-      </div>
-
-      <button className="sp-btn-primary"><i className="ti ti-device-floppy"></i> Save Changes</button>
-    </div>
-  );
-}
-
-function SecurityTab() {
-  return (
-    <div className="sp-card">
-      <div className="sp-card-title"><i className="ti ti-shield-lock"></i> Change Password</div>
-
-      <div className="sp-field-grid">
-        <div className="sp-field-full">
-          <label className="sp-field-label">Current Password</label>
-          <div className="sp-field-wrap">
-            <input className="sp-field-input" type="password" placeholder="••••••••" />
-            <i className="ti ti-lock sp-field-icon"></i>
-          </div>
-        </div>
-
-        <div>
-          <label className="sp-field-label">New Password</label>
-          <div className="sp-field-wrap">
-            <input className="sp-field-input" type="password" placeholder="••••••••" />
-            <i className="ti ti-lock sp-field-icon"></i>
-          </div>
-
-          <div className="sp-strength-wrap">
-            <div className="sp-strength-bar"><div className="sp-strength-fill"></div></div>
-            <span className="sp-strength-label">Strong</span>
-          </div>
-        </div>
-
-        <div>
-          <label className="sp-field-label">Confirm Password</label>
-          <div className="sp-field-wrap">
-            <input className="sp-field-input" type="password" placeholder="••••••••" />
-            <i className="ti ti-lock sp-field-icon"></i>
-          </div>
-        </div>
-      </div>
-
-      <button className="sp-btn-primary"><i className="ti ti-key"></i> Update Password</button>
-    </div>
-  );
-}
-
-function PreferencesTab() {
-  return (
-    <div className="sp-card">
-      <div className="sp-card-title"><i className="ti ti-adjustments"></i> Preferences</div>
-
-      <div className="sp-toggle-list">
-        <Toggle label="Dark Mode" desc="Enable dark theme" icon="moon" />
-        <Toggle label="Notifications" desc="Receive real-time alerts" icon="bell" defaultChecked />
-      </div>
-
-      <div style={{ marginBottom: 20 }}>
-        <label className="sp-field-label">Language</label>
-        <div className="sp-select-wrap">
-          <select className="sp-select-field">
-            <option>Arabic</option>
-            <option>English</option>
-          </select>
-          <i className="ti ti-chevron-down sp-select-arrow"></i>
-        </div>
-      </div>
-
-      <button className="sp-btn-primary"><i className="ti ti-device-floppy"></i> Save Preferences</button>
-    </div>
-  );
-}
-
-function SystemTab() {
-  return (
-    <div className="sp-card">
-      <div className="sp-card-title"><i className="ti ti-settings"></i> System Settings — Admin</div>
-
-      <div className="sp-sys-grid">
-        <button className="sp-btn-ghost"><i className="ti ti-users"></i> User Management</button>
-        <button className="sp-btn-ghost"><i className="ti ti-mood-smile"></i> Edit Sentiments</button>
-        <button className="sp-btn-ghost"><i className="ti ti-list-check"></i> Edit Priorities</button>
-      </div>
-
-      <hr className="sp-divider" />
-
-      <div className="sp-danger-zone">
-        <div className="sp-danger-label"><i className="ti ti-alert-triangle"></i> Danger Zone</div>
-        <div className="sp-danger-desc">This action cannot be undone. Proceed carefully.</div>
-        <button className="sp-btn-danger"><i className="ti ti-refresh-alert"></i> Reset System</button>
-      </div>
-    </div>
-  );
-}
-
-const TABS = [
-  { label: 'Profile', icon: 'user', component: <ProfileTab /> },
-  { label: 'Security', icon: 'shield-lock', component: <SecurityTab /> },
-  { label: 'Preferences', icon: 'adjustments', component: <PreferencesTab /> },
-  { label: 'System', icon: 'settings', component: <SystemTab /> },
+const tabs = [
+  { label: 'Profile', icon: <IconUser size={18} /> },
+  { label: 'Security', icon: <IconShieldLock size={18} /> },
+  { label: 'Preferences', icon: <IconAdjustments size={18} /> },
+  { label: 'System', icon: <IconSettings size={18} /> }
 ];
+
 export default function SettingsPage() {
   const [tab, setTab] = useState(0);
 
-
   return (
-    <>
-      <style>{styles}</style>
+    <Card sx={{ borderRadius: 3, boxShadow: 2 }}>
+      <CardContent>
 
-     <div className="sp-card">
-  <Typography
-    variant="h4"
-    gutterBottom
-    sx={{ padding: '16px 2px', fontWeight: 600 }}
-  >
-    Settings
-  </Typography>
+        {/* Header */}
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            padding: '16px 2px',
+            fontWeight: 600
+          }}
+        >
+          Settings
+        </Typography>
 
-
-        <div className="sp-tabs">
-          {TABS.map((t, i) => (
-            <button
+        {/* Tabs */}
+        <Stack direction="row" spacing={1} mb={3}>
+          {tabs.map((t, i) => (
+            <Button
               key={i}
-              className={`sp-tab${tab === i ? ' active' : ''}`}
+              startIcon={t.icon}
               onClick={() => setTab(i)}
+              variant={tab === i ? 'contained' : 'outlined'}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 500
+              }}
             >
-              <i className={`ti ti-${t.icon}`}></i> {t.label}
-            </button>
+              {t.label}
+            </Button>
           ))}
-        </div>
+        </Stack>
 
-        {TABS[tab].component}
-      </div>
-    </>
+        {/* ================= PROFILE ================= */}
+        {tab === 0 && (
+          <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
+            <CardContent>
+
+              <Typography
+                variant="h6"
+                mb={3}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  fontWeight: 600
+                }}
+              >
+                <IconUser size={20} />
+                Personal Information
+              </Typography>
+
+              {/* Avatar */}
+              <Stack
+                direction="row"
+                spacing={2}
+                alignItems="center"
+                mb={4}
+                sx={{
+                  background: '#f8f9fa',
+                  p: 2,
+                  borderRadius: 3
+                }}
+              >
+                <Avatar
+                  sx={{
+                    width: 64,
+                    height: 64,
+                    bgcolor: '#5e35b1',
+                    fontWeight: 600
+                  }}
+                >
+                  AH
+                </Avatar>
+
+                <Box>
+                  <Typography fontWeight={600}>
+                    Ahmed Al-Shammari
+                  </Typography>
+
+                  <Typography variant="body2" color="text.secondary">
+                    System Administrator
+                  </Typography>
+                </Box>
+
+                <Button
+                  variant="outlined"
+                  startIcon={<IconUpload size={18} />}
+                  sx={{
+                    ml: 'auto',
+                    borderRadius: 2,
+                    textTransform: 'none'
+                  }}
+                >
+                  Upload Photo
+                </Button>
+              </Stack>
+
+              {/* Fields */}
+              <Stack spacing={2}>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                  <TextField
+                    fullWidth
+                    label="Name"
+                    placeholder="Full name"
+                  />
+
+                  <TextField
+                    fullWidth
+                    disabled
+                    label="Email"
+                    defaultValue="ahmed@co.sa"
+                  />
+                </Stack>
+
+                <TextField
+                  fullWidth
+                  disabled
+                  label="Job Role"
+                  defaultValue="System Administrator"
+                />
+              </Stack>
+
+              <Button
+                variant="contained"
+                startIcon={<IconDeviceFloppy size={18} />}
+                sx={{
+                  mt: 3,
+                  borderRadius: 2,
+                  textTransform: 'none'
+                }}
+              >
+                Save Changes
+              </Button>
+
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ================= SECURITY ================= */}
+        {tab === 1 && (
+          <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
+            <CardContent>
+
+              <Typography
+                variant="h6"
+                mb={3}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  fontWeight: 600
+                }}
+              >
+                <IconShieldLock size={20} />
+                Change Password
+              </Typography>
+
+              <Stack spacing={2}>
+
+                <TextField
+                  fullWidth
+                  type="password"
+                  label="Current Password"
+                />
+
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+
+                  <Box width="100%">
+                    <TextField
+                      fullWidth
+                      type="password"
+                      label="New Password"
+                    />
+
+                    <Chip
+                      label="Strong Password"
+                      size="small"
+                      sx={{
+                        mt: 1,
+                        backgroundColor: '#e8f5e9',
+                        color: '#2e7d32'
+                      }}
+                    />
+                  </Box>
+
+                  <TextField
+                    fullWidth
+                    type="password"
+                    label="Confirm Password"
+                  />
+                </Stack>
+              </Stack>
+
+              <Button
+                variant="contained"
+                startIcon={<IconKey size={18} />}
+                sx={{
+                  mt: 3,
+                  borderRadius: 2,
+                  textTransform: 'none'
+                }}
+              >
+                Update Password
+              </Button>
+
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ================= PREFERENCES ================= */}
+        {tab === 2 && (
+          <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
+            <CardContent>
+
+              <Typography
+                variant="h6"
+                mb={3}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  fontWeight: 600
+                }}
+              >
+                <IconAdjustments size={20} />
+                Preferences
+              </Typography>
+
+              <Stack spacing={2}>
+
+                <FormControlLabel
+                  control={<Switch />}
+                  label="Dark Mode"
+                />
+
+                <FormControlLabel
+                  control={<Switch defaultChecked />}
+                  label="Notifications"
+                />
+
+                <TextField
+                  select
+                  fullWidth
+                  label="Language"
+                  defaultValue="English"
+                >
+                  <MenuItem value="Arabic">Arabic</MenuItem>
+                  <MenuItem value="English">English</MenuItem>
+                </TextField>
+
+              </Stack>
+
+              <Button
+                variant="contained"
+                startIcon={<IconDeviceFloppy size={18} />}
+                sx={{
+                  mt: 3,
+                  borderRadius: 2,
+                  textTransform: 'none'
+                }}
+              >
+                Save Preferences
+              </Button>
+
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ================= SYSTEM ================= */}
+        {tab === 3 && (
+          <Card sx={{ borderRadius: 3, boxShadow: 1 }}>
+            <CardContent>
+
+              <Typography
+                variant="h6"
+                mb={3}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  fontWeight: 600
+                }}
+              >
+                <IconSettings size={20} />
+                System Settings — Admin
+              </Typography>
+
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={2}
+                mb={3}
+              >
+
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<IconUsers size={18} />}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none'
+                  }}
+                >
+                  User Management
+                </Button>
+
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<IconMoodSmile size={18} />}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none'
+                  }}
+                >
+                  Edit Sentiments
+                </Button>
+
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<IconListCheck size={18} />}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none'
+                  }}
+                >
+                  Edit Priorities
+                </Button>
+
+              </Stack>
+
+              <Divider sx={{ mb: 3 }} />
+
+              {/* Danger Zone */}
+              <Box
+                sx={{
+                  border: '1px solid #ffcdd2',
+                  background: '#ffebee',
+                  borderRadius: 3,
+                  p: 3
+                }}
+              >
+
+                <Typography
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    color: '#d32f2f',
+                    fontWeight: 600,
+                    mb: 1
+                  }}
+                >
+                  <IconAlertTriangle size={18} />
+                  Danger Zone
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: '#c62828',
+                    mb: 2
+                  }}
+                >
+                  This action cannot be undone. Proceed carefully.
+                </Typography>
+
+                <Button
+                  color="error"
+                  variant="contained"
+                  startIcon={<IconRefreshAlert size={18} />}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none'
+                  }}
+                >
+                  Reset System
+                </Button>
+
+              </Box>
+
+            </CardContent>
+          </Card>
+        )}
+
+      </CardContent>
+    </Card>
   );
 }
